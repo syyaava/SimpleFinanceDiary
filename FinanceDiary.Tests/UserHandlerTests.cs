@@ -9,32 +9,6 @@ namespace FinanceDiary.Tests
     public class UserHandlerTests
     {
         [Fact]
-        public void AddUser_ValidUser_ReturnOkWithAddedUser()
-        {
-            var user = new User("TestUser");
-            IUserHandler userHandler = new UserHandler(new MockUserSource());
-
-            var result = userHandler.AddUser(user);
-
-            Assert.Equal(Status.Ok, result.Status);
-            Assert.NotNull(result.Result);
-        }
-
-        [Fact]
-        public void AddUser_ExistingUser_ReturnErrorWithUnknowUser()
-        {
-            var user = new User("TestUser");
-            IUserHandler userHandler = new UserHandler(new MockUserSource());
-
-            userHandler.AddUser(new User("TestUser"));
-            var result = userHandler.AddUser(user);
-
-            Assert.NotNull(result.Result);
-            Assert.Equal(Status.Error, result.Status);
-            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.Id);
-        }
-
-        [Fact]
         public void GetUser_ExistingUser_ReturnOkWithUser()
         {
             var user = new User("TestUser");
