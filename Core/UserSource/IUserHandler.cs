@@ -8,10 +8,10 @@ namespace Core
 {
     public interface IUserHandler
     {
-        User GetUser(string userId);
-        IEnumerable<User> GetUsers();
-        void AddUser(User user);
-        void RemoveUser(string userId);
-        User UpdateUser(User oldUser, User newUser);
+        IOperationResult<User> GetUser(string userId);
+        IOperationResult<IEnumerable<User>> GetUsers();
+        IOperationResult<User> AddUser(User user);
+        IOperationResult<User> RemoveUser(string userId);
+        IOperationResult<User> UpdateUser(User oldUser, User newUser);
     }
 }

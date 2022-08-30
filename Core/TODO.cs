@@ -9,10 +9,8 @@ namespace Core
     internal class TODO
     {
         //TODO: Придумать нормальные, содержательные имена для FinanceHandler и UserHandler
-        //TODO: Написать тесты для FinanceSourceDb
-        //TODO: Написать тесты для UserDbContext, FinanceDbContext
-        //TODO: Реализовать контексты БД для SQLite 
-        //TODO: Реализовать UserSourceDb и FinanceSourceDb
+        //TODO: Создать и реализовать интерфейс SQLiteFinanceSource и тесты к нему
+        //TODO: Реализовать интерфейсы IUserHandler и IFinanceHandler и тесты к ним.
         //TODO: 
         //TODO: 
     }

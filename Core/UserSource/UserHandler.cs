@@ -19,27 +19,27 @@ namespace Core
             this.loggers = loggers;
         }
 
-        public void AddUser(User user)
+        public IOperationResult<User> AddUser(User user)
         {
             throw new NotImplementedException();
         }
 
-        public User GetUser(string userId)
+        public IOperationResult<User> GetUser(string userId)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerable<User> GetUsers()
+        public IOperationResult<IEnumerable<User>> GetUsers()
         {
             throw new NotImplementedException();
         }
 
-        public void RemoveUser(string userId)
+        public IOperationResult<User> RemoveUser(string userId)
         {
             throw new NotImplementedException();
         }
 
-        public User UpdateUser(User oldUser, User newUser)
+        public IOperationResult<User> UpdateUser(User oldUser, User newUser)
         {
             throw new NotImplementedException();
         }
