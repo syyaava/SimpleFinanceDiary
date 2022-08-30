@@ -62,6 +62,37 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
+        public void GetUsers_NotEmtyUserList_ReturnOkWithUserList()
+        {
+            IUserHandler userHandler = new UserHandler(new MockUserSource());
+
+            userHandler.AddUser(new User("TestUser1"));
+            userHandler.AddUser(new User("TestUser2"));
+            userHandler.AddUser(new User("TestUser3"));
+            userHandler.AddUser(new User("TestUser4"));
+            userHandler.AddUser(new User("TestUser5"));
+            userHandler.AddUser(new User("TestUser6"));
+            userHandler.AddUser(new User("TestUser7"));
+            var result = userHandler.GetUsers();
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(7, result.Result?.Count());
+            for (var i = 1; i <= 7; i++)
+                Assert.Contains($"TestUser{i}", result.Result?.Select(x => x.Id));
+        }
+
+        [Fact]
+        public void GetUsers_EmptyUserList_ReturnOkWithEmptyUserList()
+        {
+            IUserHandler userHandler = new UserHandler(new MockUserSource());
+
+            var result = userHandler.GetUsers();
+
+            Assert.NotNull(result.Result);
+            Assert.Empty(result.Result);
+        }
+
+        [Fact]
         public void AddUser_ValidNotExistingUser_ReturnOkWithUser()
         {
             var userToAdd = new User("TestUser");
@@ -142,40 +173,6 @@ namespace FinanceDiary.Tests
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Error, result.Status);
             Assert.Equal(User.UNKNOW_USERNAME, result.Result?.Id);
-        }
-    }
-
-    internal class MockUserSource : IUserSource
-    {
-        public string Name { get; } = "Mock user source.";
-        private List<User> users = new List<User>();
-
-        public void AddUser(User user)
-        {
-            users.Add(user);
-        }
-
-        public User GetUser(string userId)
-        {
-            var user = users.FirstOrDefault(u => u.Id == userId);
-            return user is not null ? user : throw new ItemNotFoundException("User not found.");
-        }
-
-        public IEnumerable<User> GetUsers()
-        {
-            return users;
-        }
-
-        public void RemoveUser(User user)
-        {
-            var userToRemove = GetUser(user.Id);
-            users.Remove(userToRemove);
-        }
-
-        public void UpdateUser(User oldUser, User newUser)
-        {
-            var userToUpdate = GetUser(oldUser.Id);
-            userToUpdate = newUser;
         }
     }
 }
