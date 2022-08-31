@@ -9,5 +9,11 @@ namespace Core
     public interface ILogger
     {
         void Write(string message);
+
+        static void Log(IEnumerable<ILogger> loggers, string message)
+        {
+            foreach (var logger in loggers)
+                logger.Write(message);
+        }
     }
 }

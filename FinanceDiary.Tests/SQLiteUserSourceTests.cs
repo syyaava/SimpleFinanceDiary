@@ -93,7 +93,7 @@ namespace FinanceDiary.Tests
             var userToRemove = new User("RemoveUser");
 
             userSource.AddUser(userToRemove);
-            userSource.RemoveUser(userToRemove);
+            userSource.RemoveUser(userToRemove.Id);
 
             Assert.Throws<ItemNotFoundException>(() => userSource.GetUser(userToRemove.Id));
         }
@@ -104,7 +104,7 @@ namespace FinanceDiary.Tests
             IUserSource userSource = CreateUserSource();
             var userToRemove = new User("RemoveUser");
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.RemoveUser(userToRemove));
+            Assert.Throws<ItemNotFoundException>(() => userSource.RemoveUser(userToRemove.Id));
         }
 
         [Fact]
@@ -142,7 +142,7 @@ namespace FinanceDiary.Tests
         {
             var users = userSource.GetUsers();
             foreach(var user in users)
-                userSource.RemoveUser(user);
+                userSource.RemoveUser(user.Id);
         }
     }
 }

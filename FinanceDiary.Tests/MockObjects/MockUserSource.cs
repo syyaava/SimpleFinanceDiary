@@ -7,7 +7,15 @@
 
         public void AddUser(User user)
         {
-            users.Add(user);
+            try
+            {
+                var existingUser = GetUser(user.Id);
+                throw new ItemAlreadyExistException("User with this id already exists.");
+            }
+            catch (ItemNotFoundException)
+            {
+                users.Add(user);
+            }
         }
 
         public User GetUser(string userId)
@@ -18,19 +26,23 @@
 
         public IEnumerable<User> GetUsers()
         {
+            if (users is null)
+                throw new ArgumentNullException("Users set is null.");
+
             return users;
         }
 
-        public void RemoveUser(User user)
+        public void RemoveUser(string userId)
         {
-            var userToRemove = GetUser(user.Id);
+            var userToRemove = GetUser(userId);
             users.Remove(userToRemove);
         }
 
         public void UpdateUser(User oldUser, User newUser)
         {
             var userToUpdate = GetUser(oldUser.Id);
-            userToUpdate = newUser;
+            users.Remove(userToUpdate);
+            users.Add(newUser);
         }
     }
 }

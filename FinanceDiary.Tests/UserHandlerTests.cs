@@ -50,6 +50,7 @@ namespace FinanceDiary.Tests
             var result = userHandler.GetUsers();
 
             Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
             Assert.Equal(7, result.Result?.Count());
             for (var i = 1; i <= 7; i++)
                 Assert.Contains($"TestUser{i}", result.Result?.Select(x => x.Id));
@@ -63,6 +64,7 @@ namespace FinanceDiary.Tests
             var result = userHandler.GetUsers();
 
             Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
             Assert.Empty(result.Result);
         }
 
@@ -80,7 +82,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void AddUser_ValidExistingUser_ReturnErrorWithUnknowUser()
+        public void AddUser_ValidExistingUser_ReturnErrorWithUser()
         {
             var userToAdd = new User("TestUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
@@ -90,7 +92,7 @@ namespace FinanceDiary.Tests
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Error, result.Status);
-            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.Id);
+            Assert.Equal(userToAdd.Id, result.Result?.Id);
         }
 
         [Fact]
@@ -108,7 +110,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void RemoveUser_NotExistingUser_ReturnErrorWithUnknowUser()
+        public void RemoveUser_NotExistingUser_ReturnErrorWithUser()
         {
             var userToRemove = new User("TestUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
@@ -136,7 +138,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void UpdateUser_NotExistingUser_ReturnErrorWithDefaultUser()
+        public void UpdateUser_NotExistingUser_ReturnErrorWithUser()
         {
             var userToUpdate = new User("UserToUpdate");
             var updatedUser = new User("UpdatedUser");
@@ -146,7 +148,7 @@ namespace FinanceDiary.Tests
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Error, result.Status);
-            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.Id);
+            Assert.Equal(userToUpdate.Id, result.Result?.Id);
         }
     }
 }

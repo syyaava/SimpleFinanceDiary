@@ -12,7 +12,7 @@ namespace Core
         User GetUser(string userId);
         IEnumerable<User> GetUsers();
         void AddUser(User user);
-        void RemoveUser(User user);
+        void RemoveUser(string user);
         void UpdateUser(User oldUser, User newUser);
     }
 }

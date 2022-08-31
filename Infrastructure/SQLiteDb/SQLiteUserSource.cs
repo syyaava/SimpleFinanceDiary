@@ -49,9 +49,9 @@ namespace Infrastructure
             return users;
         }
 
-        public void RemoveUser(User user)
+        public void RemoveUser(string userId)
         {
-            var userToRemove = GetUser(user.Id);
+            var userToRemove = GetUser(userId);
             users.Remove(userToRemove);
             SaveChanges();
         }
