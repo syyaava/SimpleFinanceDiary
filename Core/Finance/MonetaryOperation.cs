@@ -9,15 +9,15 @@ namespace Core
     public class MonetaryOperation
     {
         public decimal Amount { get; init; }
-        public OperationType operationType { get; init; }
+        public OperationType OperationType { get; init; }
         public string Id { get; }
-        public string UserId { get; }
+        public string UserId { get; init; }
         public string CreationDateTime { get; }
 
         public MonetaryOperation(decimal amount, OperationType operationType, string userId)
         {
             Amount = amount;
-            this.operationType = operationType;
+            this.OperationType = operationType;
             Id = Guid.NewGuid().ToString();
             UserId = userId;
             CreationDateTime = DateTime.Now.ToString("yyyy-mm-dd HH:mm:ss");
@@ -32,7 +32,7 @@ namespace Core
         {
             return op1.Amount == op2.Amount &&
                    op1.CreationDateTime == op2.CreationDateTime &&
-                   op1.operationType == op2.operationType &&
+                   op1.OperationType == op2.OperationType &&
                    op1.Id == op2.Id &&
                    op1.UserId == op2.UserId;
         }
@@ -41,7 +41,7 @@ namespace Core
         {
             return op1.Amount != op2.Amount ||
                    op1.CreationDateTime != op2.CreationDateTime ||
-                   op1.operationType != op2.operationType ||
+                   op1.OperationType != op2.OperationType ||
                    op1.Id != op2.Id ||
                    op1.UserId != op2.UserId;
         }
@@ -51,7 +51,7 @@ namespace Core
             if (obj is MonetaryOperation op2)
                 return this.Amount == op2.Amount &&
                        this.CreationDateTime == op2.CreationDateTime &&
-                       this.operationType == op2.operationType &&
+                       this.OperationType == op2.OperationType &&
                        this.Id == op2.Id &&
                        this.UserId == op2.UserId;
             else
