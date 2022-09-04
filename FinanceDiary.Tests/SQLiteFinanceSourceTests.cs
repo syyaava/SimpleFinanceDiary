@@ -109,7 +109,7 @@ namespace FinanceDiary.Tests
             var userOperations = financeSource.GetAllByUser(userId).OrderBy(x => x.Amount).ToList();
             var existingOperations = operations.Where(x => x.UserId == userId).OrderBy(x => x.Amount).ToList();
 
-            Assert.Equal(operations.Count, userOperations.Count);
+            Assert.Equal(operations.Count(x => x.UserId == userId), userOperations.Count);
             for(var i = 0; i < operations.Count(x => x.UserId == userId); i++)
                 Assert.Equal(existingOperations[i], userOperations[i]);
         }
@@ -124,8 +124,8 @@ namespace FinanceDiary.Tests
             var userOperations = financeSource.GetAllByUser(userId).OrderBy(x => x.Amount).ToList();
             var existingOperations = operations.Where(x => x.UserId == userId).OrderBy(x => x.Amount).ToList();
 
-            Assert.Equal(operations.Count, userOperations.Count);
-            for(var i = 0; i < operations.Count(x => x.UserId == userId); i++)
+            Assert.Equal(operations.Count(x => x.UserId == userId), userOperations.Count);
+            for (var i = 0; i < operations.Count(x => x.UserId == userId); i++)
                 Assert.Equal(existingOperations[i], userOperations[i]);
         }
 
@@ -181,7 +181,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void Remove_ExistingOperation_ThrowItemNotFoundException()
+        public void Remove_NoExistingOperation_ThrowItemNotFoundException()
         {
             var financeSource = CreateFinanceSource();
             var operation = new MonetaryOperation(6546.55M, OperationType.Expense, "user");
@@ -247,11 +247,11 @@ namespace FinanceDiary.Tests
 
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
             var operationToUpdate = operations[1];
-            var updatedOperation = new MonetaryOperation(888M, OperationType.Expense, operationToUpdate.UserId);
+            var updatedOperation = new MonetaryOperation(888M, OperationType.Income, operationToUpdate.UserId);
             financeSource.Update(operationToUpdate, updatedOperation);
 
-            Assert.DoesNotContain(operationToUpdate, operations);
-            Assert.Contains(updatedOperation, operations);
+            Assert.DoesNotContain(operationToUpdate, financeSource.GetAll());
+            Assert.Contains(updatedOperation, financeSource.GetAll());
             Assert.Equal(updatedOperation, financeSource.Get(updatedOperation.Id, updatedOperation.UserId));
         }
 

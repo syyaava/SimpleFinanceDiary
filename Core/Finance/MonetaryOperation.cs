@@ -25,7 +25,7 @@ namespace Core
 
         public static MonetaryOperation GetDefaultOperation()
         {
-            return new MonetaryOperation(0M, OperationType.Default, User.UNKNOW_USERNAME);
+            return new MonetaryOperation(0M, OperationType.Default, Core.User.UNKNOW_USERNAME);
         }
 
         public static bool operator ==(MonetaryOperation op1, MonetaryOperation op2)
