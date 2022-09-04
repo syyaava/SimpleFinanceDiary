@@ -11,7 +11,8 @@ namespace Core
         void Add(MonetaryOperation operation);
         void AddRange(IEnumerable<MonetaryOperation> operations);
         MonetaryOperation Get(string id, string userId);
-        IEnumerable<MonetaryOperation> GetAll(string userId);
+        IEnumerable<MonetaryOperation> GetAll();
+        IEnumerable<MonetaryOperation> GetAllByUser(string userId);
         IEnumerable<MonetaryOperation> GetAllByType(string userId, OperationType type);
         void Remove(MonetaryOperation operation);
         void RemoveAll(string userId);

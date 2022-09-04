@@ -1,37 +1,25 @@
-﻿using Core;
-using Core.Exceptions;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure
+namespace FinanceDiary.Tests
 {
-    public class SQLiteFinanceSource : DbContext, IFinanceSource
+    public class MockFinanceSource : IFinanceSource
     {
-        const string CONNECTION_STRING = "Data Source=FinanceDiary.db";
-        public string Name { get; } = "SQLite Db finance source";
-
-        private DbSet<MonetaryOperation> operations => Set<MonetaryOperation>();
-
-        public SQLiteFinanceSource()
-        {
-            Database.EnsureCreated();
-        }
+        public string Name => "Mock finance source.";
+        List<MonetaryOperation> operations = new List<MonetaryOperation>();
 
         public void Add(MonetaryOperation operation)
         {
             try
             {
-                var existingOperation = Get(operation.Id, operation.UserId);
-                throw new ItemAlreadyExistException($"Operation with id {operation.Id} already contains.");
-            }
-            catch(ItemNotFoundException)
-            {
                 operations.Add(operation);
-                SaveChanges();
+            }
+            catch
+            {
+                throw new Exception("Error when adding operation");
             }
         }
 
@@ -68,7 +56,6 @@ namespace Infrastructure
         {
             var existingOperation = Get(operation.Id, operation.UserId);
             operations.Remove(existingOperation);
-            SaveChanges();
         }
 
         public void RemoveAll(string userId)
@@ -85,17 +72,6 @@ namespace Infrastructure
         {
             Remove(oldOperation);
             Add(newOperation);
-            SaveChanges();
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlite(CONNECTION_STRING);
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<MonetaryOperation>().HasKey(x => x.Id);
         }
 
         private IEnumerable<MonetaryOperation> GetOperations(Func<MonetaryOperation, bool> func)
