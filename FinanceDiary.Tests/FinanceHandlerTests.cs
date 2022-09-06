@@ -9,29 +9,34 @@ namespace FinanceDiary.Tests
     public class FinanceHandlerTests
     {
         [Fact]
-        public void Add_ValidOperation_NoExceptions()
+        public void Add_ValidOperation_ReturnOkWithOperation()
+        {
+            IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
+            var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
+
+            var result = financeHandler.Add(monetaryOperation);
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(monetaryOperation, result.Result);
+            Assert.Contains(monetaryOperation, financeHandler.GetAll().Result);
+        }
+
+        [Fact]
+        public void Add_OperationWithIdThatAlreadyContains_ReturnErrorWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
 
             financeHandler.Add(monetaryOperation);
+            var result = financeHandler.Add(monetaryOperation);
 
-            Assert.Contains(monetaryOperation, financeHandler.GetAll());
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Equal(monetaryOperation, result.Result);
         }
 
         [Fact]
-        public void Add_OperationWithIdThatAlreadyContains_ThrowItemAlreadyContainsException()
-        {
-            IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
-
-            financeHandler.Add(monetaryOperation);
-
-            Assert.Throws<ItemAlreadyExistException>(() => financeHandler.Add(monetaryOperation));
-        }
-
-        [Fact]
-        public void AddRange_SeveralOperations_NoException()
+        public void AddRange_SeveralOperations_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -43,22 +48,25 @@ namespace FinanceDiary.Tests
                 new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
             };
 
-            financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.AddRange(monetaryOperations);
 
-            Assert.Equal(monetaryOperations.Count, financeHandler.GetAll().Count());
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.Equal(monetaryOperations.Count, financeHandler.GetAll().Result?.Count());
             foreach (var monetaryOperation in monetaryOperations)
-                Assert.Contains(monetaryOperation, financeHandler.GetAll());
+                Assert.Contains(monetaryOperation, financeHandler.GetAll().Result);
         }
 
 
         [Fact]
-        public void AddRange_SeveralDuplicateOperations_ThrowItemAlreadyExistException()
+        public void AddRange_SeveralDuplicateOperations_ReturnErrorWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
+            var op = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
             var monetaryOperations = new List<MonetaryOperation>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
+                op,
+                op,
                 new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
                 new MonetaryOperation(45M, OperationType.Income, "TestUser"),
                 new MonetaryOperation(45M, OperationType.Income, "TestUser"),
@@ -66,22 +74,29 @@ namespace FinanceDiary.Tests
                 new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
             };
 
-            Assert.Throws<ItemAlreadyExistException>(() => financeHandler.AddRange(monetaryOperations));
+            var result = financeHandler.AddRange(monetaryOperations);
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            foreach(var operation in monetaryOperations)
+                Assert.Contains(operation, result.Result);
         }
 
         [Fact]
-        public void AddRange_EmptyOperationsList_NoException()
+        public void AddRange_EmptyOperationsList_ReturnOkWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>();
 
-            financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.AddRange(monetaryOperations);
 
-            Assert.Empty(financeHandler.GetAll());
+            Assert.Empty(financeHandler.GetAll().Result);
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
         }
 
         [Fact]
-        public void Get_ValidIdAndUserId_ReturnMonetaryOperation()
+        public void Get_ValidIdAndUserId_ReturnOkWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -92,14 +107,16 @@ namespace FinanceDiary.Tests
             };
             var selectedOperation = monetaryOperations[1];
 
-            var operation = financeHandler.Get(selectedOperation.Id, selectedOperation.UserId);
+            financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.Get(selectedOperation.Id, selectedOperation.UserId);
 
-            Assert.NotNull(operation);
-            Assert.Equal(selectedOperation, operation);
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.Equal(selectedOperation, result.Result);
         }
 
         [Fact]
-        public void Get_NoExistingOperation_ThrowItemNotFoundException()
+        public void Get_NoExistingOperation_ReturnErrorWithDefaultOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -109,19 +126,29 @@ namespace FinanceDiary.Tests
                 new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
             };
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.Get(Guid.NewGuid().ToString(), "MyUser"));
+            var result = financeHandler.Get(Guid.NewGuid().ToString(), "MyUser");
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.UserId);
+            Assert.Equal(0, result.Result?.Amount);
         }
 
         [Fact]
-        public void Get_FromEmptyOperationSet_ThrowItemNotFoundException()
+        public void Get_FromEmptyOperationSet_ReturnErrorWithDefaultOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.Get(Guid.NewGuid().ToString(), "MyUser"));
+            var result = financeHandler.Get(Guid.NewGuid().ToString(), "MyUser");
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.UserId);
+            Assert.Equal(0, result.Result?.Amount);
         }
 
         [Fact]
-        public void GetAll_NoEmptySet_ReturnIEnumerableOperation()
+        public void GetAll_NoEmptySet_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -132,24 +159,27 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
-            var set = financeHandler.GetAll();
+            var result = financeHandler.GetAll();
 
-            Assert.NotEmpty(set);
-            Assert.Equal(monetaryOperations.Count, set.Count());
+            Assert.NotNull(result.Result);
+            Assert.NotEmpty(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
         }
 
         [Fact]
-        public void GetAll_EmptyOperationSet_ReturnEmptyIEnumerableOperation()
+        public void GetAll_EmptyOperationSet_ReturnOkWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
 
-            var set = financeHandler.GetAll();
+            var result = financeHandler.GetAll();
 
-            Assert.Empty(set);
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.Empty(result.Result);
         }
 
         [Fact]
-        public void GetAllByUser_NotEmptyOperationSetExistingUser_ReturnIEnumerableOperation()
+        public void GetAllByUser_NotEmptyOperationSetExistingUser_ReturnOkIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -162,22 +192,28 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
-            var userOperations = financeHandler.GetAllByUser("TestUser");
+            var result = financeHandler.GetAllByUser("TestUser");
 
-            Assert.NotEmpty(userOperations);
-            Assert.Equal(monetaryOperations.Count(x => x.UserId == "TestUser"), userOperations.Count());
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.NotEmpty(result.Result);
+            Assert.Equal(monetaryOperations.Count(x => x.UserId == "TestUser"), result.Result?.Count());
         }
 
         [Fact]
-        public void GetAllByUser_EmptyOperationSet_ThrowItemNotFoundException()
+        public void GetAllByUser_EmptyOperationSet_ReturnErrorWithEmptyIEnumerableOperations()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByUser("TestUser"));
+            var result = financeHandler.GetAllByUser("TestUser");
+
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Empty(result.Result);
         }
 
         [Fact]
-        public void GetAllByUser_NoExistingOperatin_ThrowItemNotFoundException()
+        public void GetAllByUser_NoExistingOperatin_ReturnErrorWithEmptyIEnumerableOperations()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -190,12 +226,15 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.GetAllByUser("TestUser111111");
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByUser("TestUser111111"));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Empty(result.Result);
         }
 
         [Fact]
-        public void GetAllByType_ExistingOperations_ReturnIEnumerableOperation()
+        public void GetAllByType_ExistingOperations_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -209,24 +248,35 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
-            var userIncome = financeHandler.GetAllByType("TestUser", OperationType.Income);
-            var userExpense = financeHandler.GetAllByType("TestUser", OperationType.Expense);
+            var resultIncome = financeHandler.GetAllByType("TestUser", OperationType.Income);
+            var resultExpense = financeHandler.GetAllByType("TestUser", OperationType.Expense);
 
-            Assert.Equal(userIncome.Count(), monetaryOperations.Count(x => x.OperationType == OperationType.Income && x.UserId == "Testuser"));
-            Assert.Equal(userExpense.Count(), monetaryOperations.Count(x => x.OperationType == OperationType.Expense && x.UserId == "Testuser"));
+            Assert.NotNull(resultIncome.Result);
+            Assert.Equal(Status.Ok, resultIncome.Status);
+            Assert.NotNull(resultExpense.Result);
+            Assert.Equal(Status.Ok, resultExpense.Status);
+            Assert.Equal(monetaryOperations.Count(x => x.OperationType == OperationType.Income && x.UserId == "TestUser"), resultIncome.Result?.Count());
+            Assert.Equal(monetaryOperations.Count(x => x.OperationType == OperationType.Expense && x.UserId == "TestUser"), resultExpense.Result?.Count());
         }
 
         [Fact]
-        public void GetAllByType_EmptyOperationSet_ThrowItemNotFoundException()
+        public void GetAllByType_EmptyOperationSet_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByType("TestUser", OperationType.Income));
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByType("TestUser", OperationType.Expense));
+            var resultIncome = financeHandler.GetAllByType("TestUser", OperationType.Income);
+            var resultExpense = financeHandler.GetAllByType("TestUser", OperationType.Expense);
+
+            Assert.NotNull(resultIncome.Result);
+            Assert.Equal(Status.Error, resultIncome.Status);
+            Assert.NotNull(resultExpense.Result);
+            Assert.Equal(Status.Error, resultExpense.Status);
+            Assert.Empty(resultIncome.Result);
+            Assert.Empty(resultExpense.Result);
         }
 
         [Fact]
-        public void GetAllByType_NoExistingOperation_ThrowItemNotFoundException()
+        public void GetAllByType_NoExistingOperation_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -240,13 +290,19 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
+            var resultIncome = financeHandler.GetAllByType("TestUser1111", OperationType.Income);
+            var resultExpense = financeHandler.GetAllByType("TestUser1111", OperationType.Expense);
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByType("TestUser1111", OperationType.Income));
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.GetAllByType("TestUser1111", OperationType.Expense));
+            Assert.NotNull(resultIncome.Result);
+            Assert.Equal(Status.Error, resultIncome.Status);
+            Assert.NotNull(resultExpense.Result);
+            Assert.Equal(Status.Error, resultExpense.Status);
+            Assert.Empty(resultIncome.Result);
+            Assert.Empty(resultExpense.Result);
         }
 
         [Fact]
-        public void Remove_ExistingOperation_NoException()
+        public void Remove_ExistingOperation_ReturnOkWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -258,13 +314,15 @@ namespace FinanceDiary.Tests
             var selectedOperation = monetaryOperations[1];
 
             financeHandler.AddRange(monetaryOperations);
-            financeHandler.Remove(selectedOperation);
+            var result = financeHandler.Remove(selectedOperation);
 
-            Assert.DoesNotContain(selectedOperation, financeHandler.GetAll());
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.DoesNotContain(selectedOperation, financeHandler.GetAll().Result);
         }
 
         [Fact]
-        public void Remove_NoExistingOperation_ItemNotFoundException()
+        public void Remove_NoExistingOperation_ReturnErrorWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -275,12 +333,16 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
+            MonetaryOperation operation = new MonetaryOperation(88888M, OperationType.Expense, "MyUser");
+            var result = financeHandler.Remove(operation);
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.Remove(new MonetaryOperation(88888M, OperationType.Expense, "MyUser")));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Equal(operation, result.Result);
         }
 
         [Fact]
-        public void RemoveAll_SeveralOperations_NoException()
+        public void RemoveAll_AllUserOperations_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -294,13 +356,16 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
-            financeHandler.RemoveAll("TestUser");
+            var result = financeHandler.RemoveAll("TestUser");
 
-            Assert.Empty(financeHandler.GetAllByUser("TestUser"));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            foreach(var item in result.Result)
+                Assert.DoesNotContain(item, financeHandler.GetAll().Result);
         }
 
         [Fact]
-        public void RemoveAll_NoExistingUser_ThrowItemNotFoundException()
+        public void RemoveAll_NoExistingUser_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -314,12 +379,15 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.RemoveAll("TestUser2222");
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.RemoveAll("TestUser2222"));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Empty(result.Result);
         }
 
         [Fact]
-        public void RemoveAllByType_SeveralOperations_NoException()
+        public void RemoveAllByType_SeveralOperations_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -333,13 +401,15 @@ namespace FinanceDiary.Tests
             };
 
             financeHandler.AddRange(monetaryOperations);
-            financeHandler.RemoveAllByType("TestUser", OperationType.Income);
+            var result = financeHandler.RemoveAllByType("TestUser", OperationType.Income);
 
-            Assert.Equal(0, financeHandler.GetAll().Count(x => x.OperationType == OperationType.Income && x.UserId == "TestUser"));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.Equal(0, financeHandler.GetAll().Result.Count(x => x.OperationType == OperationType.Income && x.UserId == "TestUser"));
         }
 
         [Fact]
-        public void RemoveAllByType_NoExistingTypeOperations_ThrowItemNotFoundException()
+        public void RemoveAllByType_NoExistingTypeOperations_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -352,13 +422,16 @@ namespace FinanceDiary.Tests
                 new MonetaryOperation(124544M, OperationType.Income, "TestUser11")
             };
 
-            financeHandler.AddRange(monetaryOperations);            ;
+            financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.RemoveAllByType("TestUser", OperationType.Expense);
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.RemoveAllByType("TestUser", OperationType.Expense));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Empty(result.Result);
         }
 
         [Fact]
-        public void Update_ExistingOperation_NoException()
+        public void Update_ExistingOperation_ReturnOkWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -371,14 +444,17 @@ namespace FinanceDiary.Tests
             var updatedOperation = new MonetaryOperation(6666M, OperationType.Expense, "MyUser");
 
             financeHandler.AddRange(monetaryOperations);
-            financeHandler.Update(selectedOperation, updatedOperation);
+            var result = financeHandler.Update(selectedOperation, updatedOperation);
 
-            Assert.DoesNotContain(selectedOperation, financeHandler.GetAll());
-            Assert.Contains(updatedOperation, financeHandler.GetAll());
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Ok, result.Status);
+            Assert.Equal(updatedOperation, result.Result);
+            Assert.DoesNotContain(selectedOperation, financeHandler.GetAll().Result);
+            Assert.Contains(updatedOperation, financeHandler.GetAll().Result);
         }
 
         [Fact]
-        public void Update_NoExistingOperation_ThrowItemNotFoundException()
+        public void Update_NoExistingOperation_ReturnErrorWithDefaultOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -391,8 +467,12 @@ namespace FinanceDiary.Tests
             var updatedOperation = new MonetaryOperation(6666M, OperationType.Expense, "MyUser");
 
             financeHandler.AddRange(monetaryOperations);
+            var result = financeHandler.Update(selectedOperation, updatedOperation);
 
-            Assert.Throws<ItemNotFoundException>(() => financeHandler.Update(selectedOperation, updatedOperation));
+            Assert.NotNull(result.Result);
+            Assert.Equal(Status.Error, result.Status);
+            Assert.Equal(User.UNKNOW_USERNAME, result.Result?.UserId);
+            Assert.Equal(0, result.Result?.Amount);
         }
     }
 }

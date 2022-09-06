@@ -8,15 +8,15 @@ namespace Core
 {
     public interface IFinanceHandler
     {
-        void Add(MonetaryOperation operation);
-        void AddRange(IEnumerable<MonetaryOperation> operations);
-        MonetaryOperation Get(string id, string userId);
-        IEnumerable<MonetaryOperation> GetAll();
-        IEnumerable<MonetaryOperation> GetAllByUser(string userId);
-        IEnumerable<MonetaryOperation> GetAllByType(string userId, OperationType type);
-        void Remove(MonetaryOperation operation);
-        void RemoveAll(string userId);
-        void RemoveAllByType(string userId, OperationType type);
-        void Update(MonetaryOperation oldOperation, MonetaryOperation newOperation);
+        IOperationResult<MonetaryOperation> Add(MonetaryOperation operation);
+        IOperationResult<IEnumerable<MonetaryOperation>> AddRange(IEnumerable<MonetaryOperation> operations);
+        IOperationResult<MonetaryOperation> Get(string id, string userId);
+        IOperationResult<IEnumerable<MonetaryOperation>> GetAll();
+        IOperationResult<IEnumerable<MonetaryOperation>> GetAllByUser(string userId);
+        IOperationResult<IEnumerable<MonetaryOperation>> GetAllByType(string userId, OperationType type);
+        IOperationResult<MonetaryOperation> Remove(MonetaryOperation operation);
+        IOperationResult<IEnumerable<MonetaryOperation>> RemoveAll(string userId);
+        IOperationResult<IEnumerable<MonetaryOperation>> RemoveAllByType(string userId, OperationType type);
+        IOperationResult<MonetaryOperation> Update(MonetaryOperation oldOperation, MonetaryOperation newOperation);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,54 +20,215 @@ namespace Core
             this.loggers = loggers;
         }
 
-        public void Add(MonetaryOperation operation)
+        public IOperationResult<MonetaryOperation> Add(MonetaryOperation operation)
         {
-            throw new NotImplementedException();
+            try
+            {
+                source.Add(operation);
+                ILogger.Log(loggers, $"Operation {operation.Id} for user {operation.UserId} was added.");
+                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+            }
+            catch(ItemAlreadyExistException ex)
+            {
+                ILogger.Log(loggers, $"Operation with this id {operation.Id} already exists. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Operation with this id {operation.Id} already exists.");
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Operation was't added. Unknown exception. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperation>(operation, Status.Error, "Operation was't added. Unknown exception.");
+            }
         }
 
-        public void AddRange(IEnumerable<MonetaryOperation> operations)
+        public IOperationResult<IEnumerable<MonetaryOperation>> AddRange(IEnumerable<MonetaryOperation> operations)
         {
-            throw new NotImplementedException();
+            var addedOperationCount = 0;
+            var operationCount = operations.Count();
+            foreach(var operation in operations)
+            {
+                if (Add(operation).Status == Status.Ok)
+                    addedOperationCount++;
+            }
+
+            ILogger.Log(loggers, $"{addedOperationCount} out of {operationCount} were added.");
+
+            if (operationCount == addedOperationCount)            
+                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok, "All operations were added successfully");                
+            else
+            {
+                int delteOp = operationCount - addedOperationCount;
+                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"{delteOp} were not added.");
+            }
         }
 
-        public MonetaryOperation Get(string id, string userId)
+        public IOperationResult<MonetaryOperation> Get(string id, string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var operation = source.Get(id, userId);
+                ILogger.Log(loggers, $"Operation with id {id} was received.");
+                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+            }
+            catch(ItemNotFoundException ex)
+            {
+                ILogger.Log(loggers, $"Operation with id {id} not found. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error, 
+                                                                $"Operation with id {id} not found.");
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Operation not found. Unknown exception. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error, 
+                                                                "Operation not found. Unknown exception.");
+            }
         }
 
-        public IEnumerable<MonetaryOperation> GetAll()
+        public IOperationResult<IEnumerable<MonetaryOperation>> GetAll()
         {
-            throw new NotImplementedException();
+            try
+            {
+                var operations = source.GetAll();
+                ILogger.Log(loggers, $"All operations was received.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Operations not received. Unknown exception. Exception message: {ex.Message}.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
+                                                                            "Operations not received. Unknown exception.");
+            }
         }
 
-        public IEnumerable<MonetaryOperation> GetAllByUser(string userId)
+        public IOperationResult<IEnumerable<MonetaryOperation>> GetAllByType(string userId, OperationType type)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var operations = source.GetAllByType(userId, type);
+                ILogger.Log(loggers, $"All operation of the type {type} were received.");
+                if(operations.Count() > 0)
+                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+                else
+                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"Operations for user {userId} not found.");
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when receiving all operations for the user {userId}. Exception message: {ex.Message}.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                                                                            $"Unknown exception when receiving all operations for the user {userId}.");
+            }
         }
 
-        public IEnumerable<MonetaryOperation> GetAllByType(string userId, OperationType type)
+        public IOperationResult<IEnumerable<MonetaryOperation>> GetAllByUser(string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var operations = source.GetAllByUser(userId);
+                ILogger.Log(loggers, $"All operations for user {userId} was received.");
+                if (operations.Count() > 0)
+                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+                else
+                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"Operations for user {userId} not found.");
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when receiving all operations for the user. Exception message: {ex.Message}.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
+                                                                            "Unknown exception when receiving all operations for the user.");
+            }
         }
 
-        public void Remove(MonetaryOperation operation)
+        public IOperationResult<MonetaryOperation> Remove(MonetaryOperation operation)
         {
-            throw new NotImplementedException();
+            try
+            {
+                source.Remove(operation);
+                ILogger.Log(loggers, $"Operation {operation.Id} was removed successfully.");
+                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+            }
+            catch(ItemNotFoundException ex)
+            {
+                ILogger.Log(loggers, $"Operation {operation.Id} not found for remove. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Operation {operation.Id} not found for remove.");
+            }
+            catch (Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when removing. Operation id: {operation.Id}. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Unknown exception when removing. Operation id: {operation.Id}.");
+            }
         }
 
-        public void RemoveAll(string userId)
+        public IOperationResult<IEnumerable<MonetaryOperation>> RemoveAll(string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var userOperations = GetAllByUser(userId).Result;
+                source.RemoveAll(userId);
+                ILogger.Log(loggers, $"All operations for user {userId} was removed.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(userOperations, Status.Ok);
+            }
+            catch(ItemNotFoundException ex)
+            {
+                ILogger.Log(loggers, $"Operations for user {userId} not found.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
+                                                                            $"Operations for user {userId} not found.");
+            }
+            catch (Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when remove operations for user {userId}. Exception message: {ex.Message}");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                                                                            "Unknown exception when received operations for user {userId}.");
+            }
         }
 
-        public void RemoveAllByType(string userId, OperationType type)
+        public IOperationResult<IEnumerable<MonetaryOperation>> RemoveAllByType(string userId, OperationType type)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var userOperations = GetAllByType(userId, type).Result;
+                source.RemoveAllByType(userId, type);
+                ILogger.Log(loggers, $"All operations ({type}) for user {userId} was removed.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(userOperations, Status.Ok);
+            }
+            catch(ItemNotFoundException ex)
+            {
+                ILogger.Log(loggers, $"Operations ({type}) for user {userId} not found.");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                                                                            $"Operations ({type}) for user {userId} not found.");
+            }
+            catch (Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when remove operations ({type}) for user {userId}. Exception message: {ex.Message}");
+                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                                                                            $"Unknown exception when received operations ({type}) for user {userId}.");
+            }
         }
 
-        public void Update(MonetaryOperation oldOperation, MonetaryOperation newOperation)
+        public IOperationResult<MonetaryOperation> Update(MonetaryOperation oldOperation, MonetaryOperation newOperation)
         {
-            throw new NotImplementedException();
+            try
+            {
+                source.Update(oldOperation, newOperation);
+                ILogger.Log(loggers, $"Operation {oldOperation.Id} was updated to {newOperation.Id}.");
+                return new OperationResult<MonetaryOperation>(newOperation, Status.Ok);
+            }
+            catch(ItemNotFoundException ex)
+            {
+                ILogger.Log(loggers, $"Operation {oldOperation.Id} not found for update. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
+                                                                 $"Operation {oldOperation.Id} not found for update.");
+            }
+            catch(ItemAlreadyExistException ex)
+            {
+                ILogger.Log(loggers, $"Operation with id {newOperation.Id} already exists. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
+                                                                 $"Operation with id {newOperation.Id} already exists.");
+            }
+            catch(Exception ex)
+            {
+                ILogger.Log(loggers, $"Unknown exception when update {oldOperation.Id} operation to {newOperation.Id}. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
+                                                                 $"Unknown exception when update {oldOperation.Id} operation to {newOperation.Id}.");
+            }
         }
     }
 }

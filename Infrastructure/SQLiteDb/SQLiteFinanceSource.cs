@@ -44,14 +44,15 @@ namespace Infrastructure
         public MonetaryOperation Get(string id, string userId)
         {
             var existingOperation = operations.FirstOrDefault(x => x.Id == id && x.UserId == userId);
-            return existingOperation is not null ? existingOperation : throw new ItemNotFoundException($"Operation with id: {id}, userId: {userId} not found");
+            return existingOperation is not null ? existingOperation 
+                   : throw new ItemNotFoundException($"Operation with id: {id}, userId: {userId} not found.");
         }
 
         public IEnumerable<MonetaryOperation> GetAll()
         {
             if (operations is null)
                 throw new ArgumentNullException("Operations set is null");
-            return operations;
+            return new List<MonetaryOperation>(operations); //TODO: не нравится мне это создание нового списка при каждом запросе.
         }
 
         public IEnumerable<MonetaryOperation> GetAllByUser(string userId)
@@ -100,15 +101,15 @@ namespace Infrastructure
 
         private IEnumerable<MonetaryOperation> GetOperations(Func<MonetaryOperation, bool> func)
         {
-            var userOperations = operations.Where(func);
-            return userOperations is not null ? userOperations : Enumerable.Empty<MonetaryOperation>();
+            var userOperations = operations.Where(func).ToList();
+            return userOperations is not null ? userOperations : throw new ItemNotFoundException("Operations not found.");
         }
 
-        private void RemoveManyOperations(IEnumerable<MonetaryOperation> operations)
+        private void RemoveManyOperations(IEnumerable<MonetaryOperation> operationsToRemove)
         {
-            if (operations is null || operations.Count() == 0)
+            if (operationsToRemove is null || operationsToRemove.Count() == 0)
                 throw new ItemNotFoundException("Operations not found.");
-            foreach (var operation in operations)
+            foreach (var operation in operationsToRemove)
                 Remove(operation);
         }
     }

@@ -35,8 +35,8 @@ namespace Core
             }
             catch(Exception ex)
             {
-                ILogger.Log(loggers, $"User wasn't added. Unknow exception. Exception message: {ex.Message}.");
-                return new OperationResult<User>(user, Status.Error, "User wasn't added. Unknow exception.");
+                ILogger.Log(loggers, $"User wasn't added. Unknown exception. Exception message: {ex.Message}.");
+                return new OperationResult<User>(user, Status.Error, "User wasn't added. Unknown exception.");
             }
         }
 
