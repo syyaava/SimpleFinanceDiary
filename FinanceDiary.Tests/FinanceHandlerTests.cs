@@ -9,7 +9,7 @@ namespace FinanceDiary.Tests
     public class FinanceHandlerTests
     {
         [Fact]
-        public void Add_ValidOperation_ReturnOkWithOperation()
+        public void Add_ValidOperation_ReturnOkWithAddedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
@@ -22,7 +22,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void Add_OperationWithIdThatAlreadyContains_ReturnErrorWithOperation()
+        public void Add_OperationWithIdThatAlreadyContains_ReturnErrorWithNotAddedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
@@ -36,7 +36,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void AddRange_SeveralOperations_ReturnOkWithIEnumerableOperation()
+        public void AddRange_SeveralOperations_ReturnOkWithAddedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -59,7 +59,7 @@ namespace FinanceDiary.Tests
 
 
         [Fact]
-        public void AddRange_SeveralDuplicateOperations_ReturnErrorWithIEnumerableOperation()
+        public void AddRange_SeveralDuplicateOperations_ReturnErrorWithAddedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var op = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
@@ -179,7 +179,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void GetAllByUser_NotEmptyOperationSetExistingUser_ReturnOkIEnumerableOperation()
+        public void GetAllByUser_NotEmptyOperationSetExistingUser_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -302,7 +302,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void Remove_ExistingOperation_ReturnOkWithOperation()
+        public void Remove_ExistingOperation_ReturnOkWithRemovedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -322,7 +322,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void Remove_NoExistingOperation_ReturnErrorWithOperation()
+        public void Remove_NoExistingOperation_ReturnErrorWithNotRemovedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -342,7 +342,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void RemoveAll_AllUserOperations_ReturnOkWithIEnumerableOperation()
+        public void RemoveAll_AllUserOperations_ReturnOkWithRemovedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -387,7 +387,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void RemoveAllByType_SeveralOperations_ReturnOkWithIEnumerableOperation()
+        public void RemoveAllByType_SeveralOperations_ReturnOkWithRemovedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()
@@ -405,7 +405,7 @@ namespace FinanceDiary.Tests
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(0, financeHandler.GetAll().Result.Count(x => x.OperationType == OperationType.Income && x.UserId == "TestUser"));
+            Assert.Equal(0, financeHandler.GetAll().Result?.Count(x => x.OperationType == OperationType.Income && x.UserId == "TestUser"));
         }
 
         [Fact]
@@ -431,7 +431,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void Update_ExistingOperation_ReturnOkWithOperation()
+        public void Update_ExistingOperation_ReturnOkWithUpdatedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
             var monetaryOperations = new List<MonetaryOperation>()

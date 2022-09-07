@@ -13,7 +13,7 @@ namespace Core
         static void Log(IEnumerable<ILogger> loggers, string message)
         {
             foreach (var logger in loggers)
-                logger.Write(message);
+                logger.Write(DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToLongTimeString() + " " + message);
         }
     }
 }

@@ -20,23 +20,24 @@ namespace Core
             this.loggers = loggers;
         }
 
-        public IOperationResult<User> AddUser(User user)
+        public IOperationResult<User> AddUser(string userId)
         {
+            var newUser = new User(userId);
             try
-            {
-                userSource.AddUser(user);
-                ILogger.Log(loggers, $"User {user.Id} was added.");
-                return new OperationResult<User>(user, Status.Ok);
+            {                
+                userSource.AddUser(newUser);
+                ILogger.Log(loggers, $"User {newUser.Id} was added.");
+                return new OperationResult<User>(newUser, Status.Ok);
             }
             catch(ItemAlreadyExistException ex)
             {
                 ILogger.Log(loggers, $"User with this id already contains. Exception message: {ex.Message}.");
-                return new OperationResult<User>(user, Status.Error, "User with this id already contains.");
+                return new OperationResult<User>(newUser, Status.Error, "User with this id already contains.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"User wasn't added. Unknown exception. Exception message: {ex.Message}.");
-                return new OperationResult<User>(user, Status.Error, "User wasn't added. Unknown exception.");
+                return new OperationResult<User>(newUser, Status.Error, "User wasn't added. Unknown exception.");
             }
         }
 

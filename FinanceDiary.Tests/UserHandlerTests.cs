@@ -11,15 +11,15 @@ namespace FinanceDiary.Tests
         [Fact]
         public void GetUser_ExistingUser_ReturnOkWithUser()
         {
-            var user = new User("TestUser");
+            var userToAddId = "TestUser";
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            userHandler.AddUser(user);
-            var result = userHandler.GetUser(user.Id);
+            userHandler.AddUser(userToAddId);
+            var result = userHandler.GetUser(userToAddId);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(user.Id, result.Result?.Id);
+            Assert.Equal(userToAddId, result.Result?.Id);
         }
 
         [Fact]
@@ -36,17 +36,17 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void GetUsers_NotEmtyUserList_ReturnOkWithUserList()
+        public void GetUsers_NotEmtyUserList_ReturnOkWithIEnumerableUser()
         {
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            userHandler.AddUser(new User("TestUser1"));
-            userHandler.AddUser(new User("TestUser2"));
-            userHandler.AddUser(new User("TestUser3"));
-            userHandler.AddUser(new User("TestUser4"));
-            userHandler.AddUser(new User("TestUser5"));
-            userHandler.AddUser(new User("TestUser6"));
-            userHandler.AddUser(new User("TestUser7"));
+            userHandler.AddUser("TestUser1");
+            userHandler.AddUser("TestUser2");
+            userHandler.AddUser("TestUser3");
+            userHandler.AddUser("TestUser4");
+            userHandler.AddUser("TestUser5");
+            userHandler.AddUser("TestUser6");
+            userHandler.AddUser("TestUser7");
             var result = userHandler.GetUsers();
 
             Assert.NotNull(result.Result);
@@ -57,7 +57,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void GetUsers_EmptyUserList_ReturnOkWithEmptyUserList()
+        public void GetUsers_EmptyUserList_ReturnOkWithEmptyIEnumerableUser()
         {
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
@@ -69,48 +69,48 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void AddUser_ValidNotExistingUser_ReturnOkWithUser()
+        public void AddUser_ValidNotExistingUser_ReturnOkWithAddedUser()
         {
-            var userToAdd = new User("TestUser");
+            var userToAddId = "TestUser";
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            var result = userHandler.AddUser(userToAdd);
+            var result = userHandler.AddUser(userToAddId);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(userToAdd.Id, result.Result?.Id);
+            Assert.Equal(userToAddId, result.Result?.Id);
         }
 
         [Fact]
-        public void AddUser_ValidExistingUser_ReturnErrorWithUser()
+        public void AddUser_ValidExistingUser_ReturnErrorWithNotAddedUser()
         {
-            var userToAdd = new User("TestUser");
+            var userToAddId = "TestUser";
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            userHandler.AddUser(new User("TestUser"));
-            var result = userHandler.AddUser(userToAdd);
+            userHandler.AddUser(userToAddId);
+            var result = userHandler.AddUser(userToAddId);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Error, result.Status);
-            Assert.Equal(userToAdd.Id, result.Result?.Id);
+            Assert.Equal(userToAddId, result.Result?.Id);
         }
 
         [Fact]
-        public void RemoveUser_ExistingUser_ReturnOkWithUser()
+        public void RemoveUser_ExistingUser_ReturnOkWithRemovedUser()
         {
-            var userToRemove = new User("TestUser");
+            var userToRemoveId = "TestUser";
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            userHandler.AddUser(userToRemove);
-            var result = userHandler.RemoveUser(userToRemove.Id);
+            userHandler.AddUser(userToRemoveId);
+            var result = userHandler.RemoveUser(userToRemoveId);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(User.UNKNOW_USERNAME, userHandler.GetUser(userToRemove.Id).Result?.Id);
+            Assert.Equal(User.UNKNOW_USERNAME, userHandler.GetUser(userToRemoveId).Result?.Id);
         }
 
         [Fact]
-        public void RemoveUser_NotExistingUser_ReturnErrorWithUser()
+        public void RemoveUser_NotExistingUser_ReturnErrorWithNotRemovedUser()
         {
             var userToRemove = new User("TestUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
@@ -125,11 +125,11 @@ namespace FinanceDiary.Tests
         [Fact]
         public void UpdateUser_ExistingUser_ReturnOkWithNewUser()
         {
-            var userToUpdate = new User("UserToUpdate");
+            var userToUpdateId = "UserToUpdate";
             var updatedUser = new User("UpdatedUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
-            userHandler.AddUser(userToUpdate);
+            var userToUpdate = userHandler.AddUser(userToUpdateId).Result;
             var result = userHandler.UpdateUser(userToUpdate, updatedUser);
 
             Assert.NotNull(result.Result);
@@ -138,7 +138,7 @@ namespace FinanceDiary.Tests
         }
 
         [Fact]
-        public void UpdateUser_NotExistingUser_ReturnErrorWithUser()
+        public void UpdateUser_NotExistingUser_ReturnErrorWithNotUpdatedUser()
         {
             var userToUpdate = new User("UserToUpdate");
             var updatedUser = new User("UpdatedUser");

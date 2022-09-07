@@ -14,8 +14,9 @@ namespace Core
             throw new NotImplementedException();
         }
 
-        public bool ValidateUserIdByRegex(string userId, string pattern)
+        public bool ValidateUserIdByRegex(string userId)
         {
+            var pattern = User.USERNAME_PATTERN;
             return Regex.IsMatch(userId, pattern);
         }
     }

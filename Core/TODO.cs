@@ -9,7 +9,7 @@ namespace Core
     internal class TODO
     {
         //TODO: Придумать нормальные, содержательные имена для FinanceHandler и UserHandler.
-        //TODO: Реализовать интерфейс IFinanceHandler.
+        //TODO: Использовать DTO для передачи данных.
         //TODO: 
         //TODO: 
     }

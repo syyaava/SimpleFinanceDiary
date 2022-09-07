@@ -8,7 +8,7 @@ namespace Core
 {
     public interface IUserValidator
     {
-        public bool ValidateUserIdByRegex(string userId, string pattern);
+        public bool ValidateUserIdByRegex(string userId);
         public bool ValidateUserIdByCustom(Func<object[], bool> func, params object[] parametrs);
     }
 }
