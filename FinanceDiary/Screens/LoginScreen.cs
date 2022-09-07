@@ -9,8 +9,8 @@ namespace FinanceDiaryConsole
 {
     internal class LoginScreen : Screen<User>
     {
-        IUserHandler userHandler;
-        IUserValidator userValidator;
+        readonly IUserHandler userHandler;
+        readonly IUserValidator userValidator;
 
         public LoginScreen(IUserHandler userHandler, IUserValidator userValidator)
         {

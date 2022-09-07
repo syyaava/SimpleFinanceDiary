@@ -7,15 +7,14 @@ using System.Threading.Tasks;
 
 namespace FinanceDiaryConsole
 {
-    internal class MainScreen : Screen<bool>
+    internal class HistoryScreen : Screen<bool>
     {
         readonly User user;
         readonly IFinanceHandler financeHandler;
-
-        public MainScreen(User user, IFinanceHandler financeHandler)
+        public HistoryScreen(IFinanceHandler financeHandler, User user)
         {
-            this.user = user;
             this.financeHandler = financeHandler;
+            this.user = user;
         }
 
         public override bool Go()
@@ -33,12 +32,18 @@ namespace FinanceDiaryConsole
                 switch (inputNum)
                 {
                     case 1:
-                        var inputScreen = new InputIncomeExpensesScreen(financeHandler, user);
-                        inputScreen.Go();
-                        break;
-                    case 2:
-                        var historyScreen = new HistoryScreen(financeHandler, user);
-                        historyScreen.Go();
+                        var userHistory = financeHandler.GetAllByUser(user.Id);
+                        if (userHistory.Status != Status.Ok)
+                        {
+                            DisplayError("Your history not found.");
+                            continue;
+                        }
+                        Console.WriteLine();
+                        foreach(var operation in userHistory.Result)
+                        {
+                            Console.WriteLine($"{operation.OperationType} - {operation.Amount.ToString("C2")} - {operation.CreationDateTime}");
+                        }
+                        Console.ReadLine();
                         break;
                     case 0:
                         flag = false;
@@ -47,16 +52,16 @@ namespace FinanceDiaryConsole
                         DisplayError("Incorrect number. Try again.");
                         continue;
                 }
+                Console.Clear();
             }
             return false;
         }
 
         private void DisplayMenu()
         {
-            Console.WriteLine("==========Main menu==========");
+            Console.WriteLine("==========History menu==========");
             Console.WriteLine("Enter the appropriate number:");
-            Console.WriteLine("1 - Input Income/Expenses.");
-            Console.WriteLine("2 - History.");
+            Console.WriteLine("1 - Get all history");
             Console.WriteLine("0 - Exit.");
             Console.WriteLine();
         }

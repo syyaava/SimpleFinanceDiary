@@ -10,7 +10,7 @@ namespace Core
     {
         //TODO: Придумать нормальные, содержательные имена для FinanceHandler и UserHandler.
         //TODO: Использовать DTO для передачи данных.
-        //TODO: 
+        //TODO: Не нравятся мне огромные методы Go в наследниках Screen.
         //TODO: 
     }
 }

@@ -10,7 +10,7 @@ namespace Core
     {
         public decimal Amount { get; init; }
         public OperationType OperationType { get; init; }
-        public string Id { get; }
+        public string Id { get; init; }
         public string UserId { get; init; }
         public string CreationDateTime { get; }
 
@@ -23,9 +23,19 @@ namespace Core
             CreationDateTime = DateTime.Now.ToString("yyyy-mm-dd HH:mm:ss");
         }
 
+        public MonetaryOperation(decimal amount, OperationType operationType, string id, string userId) : this(amount, operationType, userId)
+        {
+            Id = id;
+        }
+
         public static MonetaryOperation GetDefaultOperation()
         {
             return new MonetaryOperation(0M, OperationType.Default, Core.User.UNKNOW_USERNAME);
+        }
+
+        public MonetaryOperationDTO AsDTO()
+        {
+            return new MonetaryOperationDTO(Amount, OperationType, UserId, Id);
         }
 
         public static bool operator ==(MonetaryOperation op1, MonetaryOperation op2)

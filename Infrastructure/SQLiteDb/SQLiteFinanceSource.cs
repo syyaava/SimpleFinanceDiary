@@ -10,8 +10,9 @@ using System.Threading.Tasks;
 namespace Infrastructure
 {
     public class SQLiteFinanceSource : DbContext, IFinanceSource
-    {
-        const string CONNECTION_STRING = "Data Source=FinanceDiary.db";
+    {        
+        //TODO: Вынести строку подключения в конфигурационный файл.
+        const string CONNECTION_STRING = "Data Source=FinanceSource.db";
         public string Name { get; } = "SQLite Db finance source";
 
         private DbSet<MonetaryOperation> operations => Set<MonetaryOperation>();

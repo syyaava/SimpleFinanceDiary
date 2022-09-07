@@ -12,7 +12,7 @@ namespace Infrastructure
     public class SQLiteUserSource : DbContext, IUserSource
     {
         //TODO: Вынести строку подключения в конфигурационный файл.
-        const string CONNECTION_STRING = "Data Source=FinanceDiary.db";
+        const string CONNECTION_STRING = "Data Source=UserSource.db";
         public string Name { get; } = "SQLite Db user source.";
         private DbSet<User> users => Set<User>();
 
