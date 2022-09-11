@@ -8,15 +8,15 @@ namespace Core
 {
     public interface IFinanceHandler
     {
-        IOperationResult<MonetaryOperation> Add(MonetaryOperation operation);
-        IOperationResult<IEnumerable<MonetaryOperation>> AddRange(IEnumerable<MonetaryOperation> operations);
-        IOperationResult<MonetaryOperation> Get(string id, string userId);
-        IOperationResult<IEnumerable<MonetaryOperation>> GetAll();
-        IOperationResult<IEnumerable<MonetaryOperation>> GetAllByUser(string userId);
-        IOperationResult<IEnumerable<MonetaryOperation>> GetAllByType(string userId, OperationType type);
-        IOperationResult<MonetaryOperation> Remove(MonetaryOperation operation);
-        IOperationResult<IEnumerable<MonetaryOperation>> RemoveAll(string userId);
-        IOperationResult<IEnumerable<MonetaryOperation>> RemoveAllByType(string userId, OperationType type);
-        IOperationResult<MonetaryOperation> Update(MonetaryOperation oldOperation, MonetaryOperation newOperation);
+        IOperationResult<MonetaryOperationDTO> Add(MonetaryOperationDTO operation);
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> AddRange(IEnumerable<MonetaryOperationDTO> operations);
+        IOperationResult<MonetaryOperationDTO> Get(string id, string userId);
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAll();
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAllByUser(string userId);
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAllByType(string userId, OperationType type);
+        IOperationResult<MonetaryOperationDTO> Remove(MonetaryOperationDTO operation);
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> RemoveAll(string userId);
+        IOperationResult<IEnumerable<MonetaryOperationDTO>> RemoveAllByType(string userId, OperationType type);
+        IOperationResult<MonetaryOperationDTO> Update(MonetaryOperationDTO oldOperation, MonetaryOperationDTO newOperation);
     }
 }

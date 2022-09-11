@@ -56,7 +56,7 @@ namespace FinanceDiaryConsole
             return user;
         }
 
-        private User GetUser(Func<string, IOperationResult<User>> func, string menuName)
+        private User GetUser(Func<string, IOperationResult<UserDTO>> func, string menuName)
         {
             while (true)
             {
@@ -85,8 +85,8 @@ namespace FinanceDiaryConsole
                 }
 
                 var receivingResult = func.Invoke(username);
-                if (receivingResult.Status == Status.Ok && receivingResult is not null)
-                    return receivingResult.Result;
+                if (receivingResult.Status == Status.Ok && receivingResult is not null && receivingResult.Result is not null)
+                    return receivingResult.Result.AsUser();
                 else
                     DisplayError($"User {username} not found.");
             }

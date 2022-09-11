@@ -33,7 +33,7 @@ namespace Core
             return new MonetaryOperation(0M, OperationType.Default, Core.User.UNKNOW_USERNAME);
         }
 
-        public MonetaryOperationDTO AsDTO()
+        public MonetaryOperationDTO AsDto()
         {
             return new MonetaryOperationDTO(Amount, OperationType, UserId, Id);
         }

@@ -12,40 +12,47 @@ namespace FinanceDiary.Tests
         public void Add_ValidOperation_ReturnOkWithAddedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
+            var monetaryOperation = new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser");
 
             var result = financeHandler.Add(monetaryOperation);
 
             Assert.NotNull(result.Result);
-            Assert.Equal(monetaryOperation, result.Result);
-            Assert.Contains(monetaryOperation, financeHandler.GetAll().Result);
+            Assert.Equal(monetaryOperation.Amount, result.Result.Amount);
+            Assert.Equal(monetaryOperation.UserId, result.Result.UserId);
+            Assert.Equal(monetaryOperation.CreationDateTime, result.Result.CreationDateTime);
+            Assert.NotNull(financeHandler.GetAll().Result.FirstOrDefault(x => x.Amount == monetaryOperation.Amount &&
+                                                                              x.UserId == monetaryOperation.UserId &&
+                                                                              x.CreationDateTime == monetaryOperation.CreationDateTime &&
+                                                                              x.OperationType == monetaryOperation.OperationType));
         }
 
         [Fact]
         public void Add_OperationWithIdThatAlreadyContains_ReturnErrorWithNotAddedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
+            var monetaryOperation = new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto();
 
             financeHandler.Add(monetaryOperation);
             var result = financeHandler.Add(monetaryOperation);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Error, result.Status);
-            Assert.Equal(monetaryOperation, result.Result);
+            Assert.Equal(monetaryOperation.Amount, result.Result.Amount);
+            Assert.Equal(monetaryOperation.UserId, result.Result.UserId);
+            Assert.Equal(monetaryOperation.CreationDateTime, result.Result.CreationDateTime);
         }
 
         [Fact]
         public void AddRange_SeveralOperations_ReturnOkWithAddedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(711M, OperationType.Income, "TestUser4"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(711M, OperationType.Income, "TestUser4"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             var result = financeHandler.AddRange(monetaryOperations);
@@ -53,8 +60,8 @@ namespace FinanceDiary.Tests
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
             Assert.Equal(monetaryOperations.Count, financeHandler.GetAll().Result?.Count());
-            foreach (var monetaryOperation in monetaryOperations)
-                Assert.Contains(monetaryOperation, financeHandler.GetAll().Result);
+            Assert.True(financeHandler.GetAll().Result.All(op => monetaryOperations.FirstOrDefault(x => op.Amount == x.Amount
+                                                          && op.UserId == x.UserId && op.CreationDateTime == x.CreationDateTime) != null));
         }
 
 
@@ -62,16 +69,16 @@ namespace FinanceDiary.Tests
         public void AddRange_SeveralDuplicateOperations_ReturnErrorWithAddedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var op = new MonetaryOperation(785.44M, OperationType.Income, "TestUser");
-            var monetaryOperations = new List<MonetaryOperation>()
+            var op = new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto();
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
                 op,
                 op,
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(711M, OperationType.Income, "TestUser4"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(711M, OperationType.Income, "TestUser4"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             var result = financeHandler.AddRange(monetaryOperations);
@@ -86,7 +93,7 @@ namespace FinanceDiary.Tests
         public void AddRange_EmptyOperationsList_ReturnOkWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>();
+            var monetaryOperations = new List<MonetaryOperationDTO>();
 
             var result = financeHandler.AddRange(monetaryOperations);
 
@@ -99,11 +106,11 @@ namespace FinanceDiary.Tests
         public void Get_ValidIdAndUserId_ReturnOkWithOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78511.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(78511.44M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11").AsDto()
             };
             var selectedOperation = monetaryOperations[1];
 
@@ -112,18 +119,20 @@ namespace FinanceDiary.Tests
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(selectedOperation, result.Result);
+            Assert.Equal(selectedOperation.Amount, result.Result.Amount);
+            Assert.Equal(selectedOperation.UserId, result.Result.UserId);
+            Assert.Equal(selectedOperation.CreationDateTime, result.Result.CreationDateTime);
         }
 
         [Fact]
         public void Get_NoExistingOperation_ReturnErrorWithDefaultOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78511.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78511.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             var result = financeHandler.Get(Guid.NewGuid().ToString(), "MyUser");
@@ -151,11 +160,11 @@ namespace FinanceDiary.Tests
         public void GetAll_NoEmptySet_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78511.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78511.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -182,13 +191,13 @@ namespace FinanceDiary.Tests
         public void GetAllByUser_NotEmptyOperationSetExistingUser_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -216,13 +225,13 @@ namespace FinanceDiary.Tests
         public void GetAllByUser_NoExistingOperatin_ReturnErrorWithEmptyIEnumerableOperations()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -237,14 +246,14 @@ namespace FinanceDiary.Tests
         public void GetAllByType_ExistingOperations_ReturnOkWithIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -279,14 +288,14 @@ namespace FinanceDiary.Tests
         public void GetAllByType_NoExistingOperation_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -305,11 +314,11 @@ namespace FinanceDiary.Tests
         public void Remove_ExistingOperation_ReturnOkWithRemovedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser").AsDto(),
             };
             var selectedOperation = monetaryOperations[1];
 
@@ -325,15 +334,15 @@ namespace FinanceDiary.Tests
         public void Remove_NoExistingOperation_ReturnErrorWithNotRemovedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(1237M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(1237M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
             };
 
             financeHandler.AddRange(monetaryOperations);
-            MonetaryOperation operation = new MonetaryOperation(88888M, OperationType.Expense, "MyUser");
+            MonetaryOperationDTO operation = new MonetaryOperationDTO(88888M, OperationType.Expense, "MyUser");
             var result = financeHandler.Remove(operation);
 
             Assert.NotNull(result.Result);
@@ -345,14 +354,14 @@ namespace FinanceDiary.Tests
         public void RemoveAll_AllUserOperations_ReturnOkWithRemovedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(185.5M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -368,14 +377,14 @@ namespace FinanceDiary.Tests
         public void RemoveAll_NoExistingUser_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(185.5M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -390,14 +399,14 @@ namespace FinanceDiary.Tests
         public void RemoveAllByType_SeveralOperations_ReturnOkWithRemovedIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Expense, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Expense, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Expense, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(185.5M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Expense, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Expense, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Expense, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -412,14 +421,14 @@ namespace FinanceDiary.Tests
         public void RemoveAllByType_NoExistingTypeOperations_ReturnErrorWithEmptyIEnumerableOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(52.4M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(45M, OperationType.Income, "TestUser2"),
-                new MonetaryOperation(124544M, OperationType.Income, "TestUser11")
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(185.5M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(52.4M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(45M, OperationType.Income, "TestUser2"),
+                new MonetaryOperationDTO(124544M, OperationType.Income, "TestUser11")
             };
 
             financeHandler.AddRange(monetaryOperations);
@@ -434,37 +443,41 @@ namespace FinanceDiary.Tests
         public void Update_ExistingOperation_ReturnOkWithUpdatedOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperation(785.44M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(185.5M, OperationType.Income, "TestUser").AsDto(),
+                new MonetaryOperation(78115.44M, OperationType.Income, "TestUser").AsDto(),
             };
             var selectedOperation = monetaryOperations[1];
-            var updatedOperation = new MonetaryOperation(6666M, OperationType.Expense, "MyUser");
+            var updatedOperation = new MonetaryOperationDTO(6666M, OperationType.Expense, "MyUser");
 
             financeHandler.AddRange(monetaryOperations);
             var result = financeHandler.Update(selectedOperation, updatedOperation);
 
             Assert.NotNull(result.Result);
             Assert.Equal(Status.Ok, result.Status);
-            Assert.Equal(updatedOperation, result.Result);
+            Assert.Equal(updatedOperation.Amount, result.Result.Amount);
+            Assert.Equal(updatedOperation.UserId, result.Result.UserId);
+            Assert.Equal(updatedOperation.CreationDateTime, result.Result.CreationDateTime);
             Assert.DoesNotContain(selectedOperation, financeHandler.GetAll().Result);
-            Assert.Contains(updatedOperation, financeHandler.GetAll().Result);
+            Assert.NotNull(financeHandler.GetAll().Result.FirstOrDefault(x => x.Amount == updatedOperation.Amount &&
+                                                                        x.OperationType == updatedOperation.OperationType &&
+                                                                        x.UserId == updatedOperation.UserId));
         }
 
         [Fact]
         public void Update_NoExistingOperation_ReturnErrorWithDefaultOperation()
         {
             IFinanceHandler financeHandler = new FinanceHandler(new MockFinanceSource());
-            var monetaryOperations = new List<MonetaryOperation>()
+            var monetaryOperations = new List<MonetaryOperationDTO>()
             {
-                new MonetaryOperation(785.44M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(185.5M, OperationType.Income, "TestUser"),
-                new MonetaryOperation(78115.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(785.44M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(185.5M, OperationType.Income, "TestUser"),
+                new MonetaryOperationDTO(78115.44M, OperationType.Income, "TestUser"),
             };
-            var selectedOperation = new MonetaryOperation(111M, OperationType.Income, "TestUser");
-            var updatedOperation = new MonetaryOperation(6666M, OperationType.Expense, "MyUser");
+            var selectedOperation = new MonetaryOperationDTO(111M, OperationType.Income, "TestUser");
+            var updatedOperation = new MonetaryOperationDTO(6666M, OperationType.Expense, "MyUser");
 
             financeHandler.AddRange(monetaryOperations);
             var result = financeHandler.Update(selectedOperation, updatedOperation);

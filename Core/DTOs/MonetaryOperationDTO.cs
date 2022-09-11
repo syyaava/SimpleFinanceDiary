@@ -35,10 +35,5 @@ namespace Core
             else
                 return new MonetaryOperation(Amount, OperationType, Id, UserId);
         }
-
-        public static MonetaryOperation GetDefaultOperation()
-        {
-            return new MonetaryOperation(0M, OperationType.Default, Core.User.UNKNOW_USERNAME);
-        }
     }
 }

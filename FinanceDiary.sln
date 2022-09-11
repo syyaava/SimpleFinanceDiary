@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{0197F97D-B624-479E-8321-47082C0E074F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceDiary.Tests", "FinanceDiary.Tests\FinanceDiary.Tests.csproj", "{80045837-74FE-4461-AC87-D0292885DF42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FinanceDiary.Tests", "FinanceDiary.Tests\FinanceDiary.Tests.csproj", "{80045837-74FE-4461-AC87-D0292885DF42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceDiary.Web", "FinanceDiary.Web\FinanceDiary.Web.csproj", "{B973C562-DB82-4958-B597-522D6BF4B5B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{80045837-74FE-4461-AC87-D0292885DF42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80045837-74FE-4461-AC87-D0292885DF42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80045837-74FE-4461-AC87-D0292885DF42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B973C562-DB82-4958-B597-522D6BF4B5B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B973C562-DB82-4958-B597-522D6BF4B5B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B973C562-DB82-4958-B597-522D6BF4B5B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B973C562-DB82-4958-B597-522D6BF4B5B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -20,90 +20,93 @@ namespace Core
             this.loggers = loggers;
         }
 
-        public IOperationResult<User> AddUser(string userId)
+        public IOperationResult<UserDTO> AddUser(string userId)
         {
             var newUser = new User(userId);
             try
             {                
                 userSource.AddUser(newUser);
                 ILogger.Log(loggers, $"User {newUser.Id} was added.");
-                return new OperationResult<User>(newUser, Status.Ok);
+                return new OperationResult<UserDTO>(newUser.AsDto(), Status.Ok);
             }
             catch(ItemAlreadyExistException ex)
             {
                 ILogger.Log(loggers, $"User with this id already contains. Exception message: {ex.Message}.");
-                return new OperationResult<User>(newUser, Status.Error, "User with this id already contains.");
+                return new OperationResult<UserDTO>(newUser.AsDto(), Status.Error, "User with this id already contains.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"User wasn't added. Unknown exception. Exception message: {ex.Message}.");
-                return new OperationResult<User>(newUser, Status.Error, "User wasn't added. Unknown exception.");
+                return new OperationResult<UserDTO>(newUser.AsDto(), Status.Error, "User wasn't added. Unknown exception.");
             }
         }
 
-        public IOperationResult<User> GetUser(string userId)
+        public IOperationResult<UserDTO> GetUser(string userId)
         {
             try
             {
                 var user = userSource.GetUser(userId);
                 ILogger.Log(loggers, $"User with id {userId} was received.");
-                return new OperationResult<User>(user, Status.Ok);
+                return new OperationResult<UserDTO>(user.AsDto(), Status.Ok);
             }
             catch (ItemNotFoundException ex)
             {
                 ILogger.Log(loggers, $"User with id {userId} not found. Exception message: {ex.Message}.");
-                return new OperationResult<User>(User.GetUnknowUser(), Status.Error, $"User with id {userId} not found.");
+                return new OperationResult<UserDTO>(User.GetUnknowUser().AsDto(), Status.Error, $"User with id {userId} not found.");
             }
         }
 
-        public IOperationResult<IEnumerable<User>> GetUsers()
+        public IOperationResult<IEnumerable<UserDTO>> GetUsers()
         {
             try
             {
-                var users = userSource.GetUsers();
+                var users = from user in userSource.GetUsers()
+                            select user.AsDto();
                 ILogger.Log(loggers, $"User set was received.");
-                return new OperationResult<IEnumerable<User>>(users, Status.Ok);
+                return new OperationResult<IEnumerable<UserDTO>>(users, Status.Ok);
             }
             catch(ArgumentNullException ex)
             {
                 ILogger.Log(loggers, $"User set is null.");
-                return new OperationResult<IEnumerable<User>>(new List<User>(), Status.Error, $"User set is null. Exception message: {ex.Message}.");
+                return new OperationResult<IEnumerable<UserDTO>>(new List<UserDTO>(), Status.Error, $"User set is null. Exception message: {ex.Message}.");
             }
         }
 
-        public IOperationResult<User> RemoveUser(string userId)
+        public IOperationResult<UserDTO> RemoveUser(string userId)
         {
             try
             {
-                var user = userSource.GetUser(userId);
+                var user = userSource.GetUser(userId).AsDto();
                 userSource.RemoveUser(userId);
                 ILogger.Log(loggers, $"User with id {userId} was removed.");
-                return new OperationResult<User>(user, Status.Ok, $"User with id {userId} war removed.");
+                return new OperationResult<UserDTO>(user, Status.Ok, $"User with id {userId} war removed.");
             }
             catch (ItemNotFoundException ex)
             {
                 ILogger.Log(loggers, $"User with id {userId} not fount to remove. Exception message: {ex.Message}.");
-                return new OperationResult<User>(User.GetUnknowUser(), Status.Error, $"User with id {userId} not found to remove.");
+                return new OperationResult<UserDTO>(User.GetUnknowUser().AsDto(), Status.Error, $"User with id {userId} not found to remove.");
             }
         }
 
-        public IOperationResult<User> UpdateUser(User oldUser, User newUser)
+        public IOperationResult<UserDTO> UpdateUser(UserDTO oldUserDTO, UserDTO newUserDTO)
         {
             try
             {
+                var oldUser = oldUserDTO.AsUser();
+                var newUser = newUserDTO.AsUser();
                 userSource.UpdateUser(oldUser, newUser);
                 ILogger.Log(loggers, $"User with id {oldUser.Id} was updated.");
-                return new OperationResult<User>(newUser, Status.Ok, $"Old user {oldUser.Id} was updated to {newUser.Id}.");
+                return new OperationResult<UserDTO>(newUser.AsDto(), Status.Ok, $"Old user {oldUser.Id} was updated to {newUser.Id}.");
             }
             catch(ItemNotFoundException ex)
             {
-                ILogger.Log(loggers, $"User with id {oldUser.Id} not found. Exception message: {ex.Message}.");
-                return new OperationResult<User>(oldUser, Status.Error, $"User with id {oldUser.Id} not found.");
+                ILogger.Log(loggers, $"User with id {oldUserDTO.Id} not found. Exception message: {ex.Message}.");
+                return new OperationResult<UserDTO>(oldUserDTO, Status.Error, $"User with id {oldUserDTO.Id} not found.");
             }
             catch(ItemAlreadyExistException ex)
             {
-                ILogger.Log(loggers, $"User with id {newUser.Id} already contains. Exception message: {ex.Message}.");
-                return new OperationResult<User>(newUser, Status.Error, $"User {newUser.Id} already contains.");
+                ILogger.Log(loggers, $"User with id {newUserDTO.Id} already contains. Exception message: {ex.Message}.");
+                return new OperationResult<UserDTO>(newUserDTO, Status.Error, $"User {newUserDTO.Id} already contains.");
             }
         }
     }

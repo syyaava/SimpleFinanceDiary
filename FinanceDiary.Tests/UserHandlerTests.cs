@@ -126,7 +126,7 @@ namespace FinanceDiary.Tests
         public void UpdateUser_ExistingUser_ReturnOkWithNewUser()
         {
             var userToUpdateId = "UserToUpdate";
-            var updatedUser = new User("UpdatedUser");
+            var updatedUser = new UserDTO("UpdatedUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
             var userToUpdate = userHandler.AddUser(userToUpdateId).Result;
@@ -140,8 +140,8 @@ namespace FinanceDiary.Tests
         [Fact]
         public void UpdateUser_NotExistingUser_ReturnErrorWithNotUpdatedUser()
         {
-            var userToUpdate = new User("UserToUpdate");
-            var updatedUser = new User("UpdatedUser");
+            var userToUpdate = new UserDTO("UserToUpdate");
+            var updatedUser = new UserDTO("UpdatedUser");
             IUserHandler userHandler = new UserHandler(new MockUserSource());
 
             var result = userHandler.UpdateUser(userToUpdate, updatedUser);

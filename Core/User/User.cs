@@ -22,5 +22,10 @@ namespace Core
         {
             return new User(UNKNOW_USERNAME);
         }
+
+        public UserDTO AsDto()
+        {
+            return new UserDTO(Id);
+        }
     }
 }

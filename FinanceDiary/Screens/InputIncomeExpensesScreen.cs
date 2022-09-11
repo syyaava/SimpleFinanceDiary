@@ -37,8 +37,7 @@ namespace FinanceDiaryConsole
                         Console.WriteLine("Input income:");
                         if(decimal.TryParse(Console.ReadLine(), out decimal income))
                         {
-                            //TODO: Так делать не надо, переделать на DTO.
-                            financeHandler.Add(new MonetaryOperation(income, OperationType.Income, user.Id));
+                            financeHandler.Add(new MonetaryOperationDTO(income, OperationType.Income, user.Id));
                         }
                         else
                         {
@@ -50,8 +49,7 @@ namespace FinanceDiaryConsole
                         Console.WriteLine("Input expense:");
                         if (decimal.TryParse(Console.ReadLine(), out decimal expense))
                         {
-                            //TODO: Так делать не надо, переделать на DTO.
-                            financeHandler.Add(new MonetaryOperation(expense, OperationType.Expense, user.Id));
+                            financeHandler.Add(new MonetaryOperationDTO(expense, OperationType.Expense, user.Id));
                         }
                         else
                         {

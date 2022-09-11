@@ -11,6 +11,7 @@ namespace FinanceDiaryConsole
     {
         readonly User user;
         readonly IFinanceHandler financeHandler;
+
         public HistoryScreen(IFinanceHandler financeHandler, User user)
         {
             this.financeHandler = financeHandler;

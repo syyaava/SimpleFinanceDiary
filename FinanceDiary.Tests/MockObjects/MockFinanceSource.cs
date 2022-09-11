@@ -41,7 +41,7 @@ namespace FinanceDiary.Tests
         {
             if (operations is null)
                 throw new ArgumentNullException("Operations set is null");
-            return new List<MonetaryOperation>(operations); //TODO: не нравится мне это создание нового списка при каждом запросе.
+            return new List<MonetaryOperation>(operations);
         }
 
         public IEnumerable<MonetaryOperation> GetAllByUser(string userId)

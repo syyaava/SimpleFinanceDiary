@@ -20,27 +20,28 @@ namespace Core
             this.loggers = loggers;
         }
 
-        public IOperationResult<MonetaryOperation> Add(MonetaryOperation operation)
+        public IOperationResult<MonetaryOperationDTO> Add(MonetaryOperationDTO operationDTO)
         {
             try
             {
+                var operation = operationDTO.AsMonetaryOperation();
                 source.Add(operation);
                 ILogger.Log(loggers, $"Operation {operation.Id} for user {operation.UserId} was added.");
-                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+                return new OperationResult<MonetaryOperationDTO>(operation.AsDto(), Status.Ok);
             }
             catch(ItemAlreadyExistException ex)
             {
-                ILogger.Log(loggers, $"Operation with this id {operation.Id} already exists. Exception message: {ex.Message}");
-                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Operation with this id {operation.Id} already exists.");
+                ILogger.Log(loggers, $"Operation with this id {operationDTO.Id} already exists. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperationDTO>(operationDTO, Status.Error, $"Operation with this id {operationDTO.Id} already exists.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"Operation was't added. Unknown exception. Exception message: {ex.Message}");
-                return new OperationResult<MonetaryOperation>(operation, Status.Error, "Operation was't added. Unknown exception.");
+                return new OperationResult<MonetaryOperationDTO>(operationDTO, Status.Error, "Operation was't added. Unknown exception.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> AddRange(IEnumerable<MonetaryOperation> operations)
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> AddRange(IEnumerable<MonetaryOperationDTO> operations)
         {
             var addedOperationCount = 0;
             var operationCount = operations.Count();
@@ -53,181 +54,189 @@ namespace Core
             ILogger.Log(loggers, $"{addedOperationCount} out of {operationCount} were added.");
 
             if (operationCount == addedOperationCount)            
-                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok, "All operations were added successfully");                
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Ok, "All operations were added successfully");                
             else
             {
                 int delteOp = operationCount - addedOperationCount;
-                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"{delteOp} were not added.");
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Error, $"{delteOp} were not added.");
             }
         }
 
-        public IOperationResult<MonetaryOperation> Get(string id, string userId)
+        public IOperationResult<MonetaryOperationDTO> Get(string id, string userId)
         {
             try
             {
                 var operation = source.Get(id, userId);
                 ILogger.Log(loggers, $"Operation with id {id} was received.");
-                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+                return new OperationResult<MonetaryOperationDTO>(operation.AsDto(), Status.Ok);
             }
             catch(ItemNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operation with id {id} not found. Exception message: {ex.Message}.");
-                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error, 
+                return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error, 
                                                                 $"Operation with id {id} not found.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"Operation not found. Unknown exception. Exception message: {ex.Message}.");
-                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error, 
+                return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error, 
                                                                 "Operation not found. Unknown exception.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> GetAll()
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAll()
         {
             try
             {
-                var operations = source.GetAll();
+                var operations = from operation in source.GetAll()
+                                 select operation.AsDto();
                 ILogger.Log(loggers, $"All operations was received.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Ok);
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"Operations not received. Unknown exception. Exception message: {ex.Message}.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error, 
                                                                             "Operations not received. Unknown exception.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> GetAllByType(string userId, OperationType type)
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAllByType(string userId, OperationType type)
         {
             try
             {
-                var operations = source.GetAllByType(userId, type);
+                var operations = from operation in source.GetAllByType(userId, type)
+                                 select operation.AsDto();
                 ILogger.Log(loggers, $"All operation of the type {type} were received.");
                 if(operations.Count() > 0)
-                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+                    return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Ok);
                 else
-                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"Operations for user {userId} not found.");
+                    return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Error, $"Operations for user {userId} not found.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"Unknown exception when receiving all operations for the user {userId}. Exception message: {ex.Message}.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error,
                                                                             $"Unknown exception when receiving all operations for the user {userId}.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> GetAllByUser(string userId)
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> GetAllByUser(string userId)
         {
             try
             {
-                var operations = source.GetAllByUser(userId);
+                var operations = from operation in source.GetAllByUser(userId)
+                                 select operation.AsDto();
                 ILogger.Log(loggers, $"All operations for user {userId} was received.");
                 if (operations.Count() > 0)
-                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Ok);
+                    return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Ok);
                 else
-                    return new OperationResult<IEnumerable<MonetaryOperation>>(operations, Status.Error, $"Operations for user {userId} not found.");
+                    return new OperationResult<IEnumerable<MonetaryOperationDTO>>(operations, Status.Error, $"Operations for user {userId} not found.");
             }
             catch(Exception ex)
             {
                 ILogger.Log(loggers, $"Unknown exception when receiving all operations for the user. Exception message: {ex.Message}.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
-                                                                            "Unknown exception when receiving all operations for the user.");
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error, 
+                                                                             "Unknown exception when receiving all operations for the user.");
             }
         }
 
-        public IOperationResult<MonetaryOperation> Remove(MonetaryOperation operation)
+        public IOperationResult<MonetaryOperationDTO> Remove(MonetaryOperationDTO operationDTO)
         {
             try
             {
+                var operation = operationDTO.AsMonetaryOperation();
                 source.Remove(operation);
                 ILogger.Log(loggers, $"Operation {operation.Id} was removed successfully.");
-                return new OperationResult<MonetaryOperation>(operation, Status.Ok);
+                return new OperationResult<MonetaryOperationDTO>(operation.AsDto(), Status.Ok);
             }
             catch(ItemNotFoundException ex)
             {
-                ILogger.Log(loggers, $"Operation {operation.Id} not found for remove. Exception message: {ex.Message}");
-                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Operation {operation.Id} not found for remove.");
+                ILogger.Log(loggers, $"Operation {operationDTO.Id} not found for remove. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperationDTO>(operationDTO, Status.Error, $"Operation {operationDTO.Id} not found for remove.");
             }
             catch (Exception ex)
             {
-                ILogger.Log(loggers, $"Unknown exception when removing. Operation id: {operation.Id}. Exception message: {ex.Message}");
-                return new OperationResult<MonetaryOperation>(operation, Status.Error, $"Unknown exception when removing. Operation id: {operation.Id}.");
+                ILogger.Log(loggers, $"Unknown exception when removing. Operation id: {operationDTO.Id}. Exception message: {ex.Message}");
+                return new OperationResult<MonetaryOperationDTO>(operationDTO, Status.Error, 
+                                                                $"Unknown exception when removing. Operation id: {operationDTO.Id}.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> RemoveAll(string userId)
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> RemoveAll(string userId)
         {
             try
             {
                 var userOperations = GetAllByUser(userId).Result;
                 source.RemoveAll(userId);
                 ILogger.Log(loggers, $"All operations for user {userId} was removed.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(userOperations, Status.Ok);
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(userOperations, Status.Ok);
             }
             catch(ItemNotFoundException ex)
             {
-                ILogger.Log(loggers, $"Operations for user {userId} not found.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error, 
-                                                                            $"Operations for user {userId} not found.");
+                ILogger.Log(loggers, $"Operations for user {userId} not found. Exception message: {ex.Message}");
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error, 
+                                                                             $"Operations for user {userId} not found.");
             }
             catch (Exception ex)
             {
                 ILogger.Log(loggers, $"Unknown exception when remove operations for user {userId}. Exception message: {ex.Message}");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
-                                                                            "Unknown exception when received operations for user {userId}.");
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error,
+                                                                             "Unknown exception when received operations for user {userId}.");
             }
         }
 
-        public IOperationResult<IEnumerable<MonetaryOperation>> RemoveAllByType(string userId, OperationType type)
+        public IOperationResult<IEnumerable<MonetaryOperationDTO>> RemoveAllByType(string userId, OperationType type)
         {
             try
             {
                 var userOperations = GetAllByType(userId, type).Result;
                 source.RemoveAllByType(userId, type);
                 ILogger.Log(loggers, $"All operations ({type}) for user {userId} was removed.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(userOperations, Status.Ok);
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(userOperations, Status.Ok);
             }
             catch(ItemNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operations ({type}) for user {userId} not found.");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error,
                                                                             $"Operations ({type}) for user {userId} not found.");
             }
             catch (Exception ex)
             {
                 ILogger.Log(loggers, $"Unknown exception when remove operations ({type}) for user {userId}. Exception message: {ex.Message}");
-                return new OperationResult<IEnumerable<MonetaryOperation>>(new List<MonetaryOperation>(), Status.Error,
+                return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error,
                                                                             $"Unknown exception when received operations ({type}) for user {userId}.");
             }
         }
 
-        public IOperationResult<MonetaryOperation> Update(MonetaryOperation oldOperation, MonetaryOperation newOperation)
+        public IOperationResult<MonetaryOperationDTO> Update(MonetaryOperationDTO oldOperationDTO, MonetaryOperationDTO newOperationDTO)
         {
             try
             {
+                var oldOperation = oldOperationDTO.AsMonetaryOperation();
+                var newOperation = newOperationDTO.AsMonetaryOperation();
                 source.Update(oldOperation, newOperation);
                 ILogger.Log(loggers, $"Operation {oldOperation.Id} was updated to {newOperation.Id}.");
-                return new OperationResult<MonetaryOperation>(newOperation, Status.Ok);
+                return new OperationResult<MonetaryOperationDTO>(newOperation.AsDto(), Status.Ok);
             }
             catch(ItemNotFoundException ex)
             {
-                ILogger.Log(loggers, $"Operation {oldOperation.Id} not found for update. Exception message: {ex.Message}.");
-                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
-                                                                 $"Operation {oldOperation.Id} not found for update.");
+                ILogger.Log(loggers, $"Operation {oldOperationDTO.Id} not found for update. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error,
+                                                                 $"Operation {oldOperationDTO.Id} not found for update.");
             }
             catch(ItemAlreadyExistException ex)
             {
-                ILogger.Log(loggers, $"Operation with id {newOperation.Id} already exists. Exception message: {ex.Message}.");
-                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
-                                                                 $"Operation with id {newOperation.Id} already exists.");
+                ILogger.Log(loggers, $"Operation with id {newOperationDTO.Id} already exists. Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error,
+                                                                 $"Operation with id {newOperationDTO.Id} already exists.");
             }
             catch(Exception ex)
             {
-                ILogger.Log(loggers, $"Unknown exception when update {oldOperation.Id} operation to {newOperation.Id}. Exception message: {ex.Message}.");
-                return new OperationResult<MonetaryOperation>(MonetaryOperation.GetDefaultOperation(), Status.Error,
-                                                                 $"Unknown exception when update {oldOperation.Id} operation to {newOperation.Id}.");
+                ILogger.Log(loggers, $"Unknown exception when update {oldOperationDTO.Id} operation to {newOperationDTO.Id}. " +
+                            $"Exception message: {ex.Message}.");
+                return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error,
+                                                                 $"Unknown exception when update {oldOperationDTO.Id} operation to {newOperationDTO.Id}.");
             }
         }
     }
