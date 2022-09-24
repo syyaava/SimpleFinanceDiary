@@ -1,4 +1,6 @@
-﻿namespace FinanceDiary.Tests
+﻿using Core.Interfaces;
+
+namespace FinanceDiary.Tests
 {
     internal class MockLogger : ILogger
     {

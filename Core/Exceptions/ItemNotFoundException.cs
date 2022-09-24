@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Core.Exceptions
 {
-    public class ItemNotFoundException: Exception
+    public class ObjectNotFoundException: Exception
     {
-        public ItemNotFoundException() : base("Item not found.") { }
+        public ObjectNotFoundException() : base("Object not found.") { }
 
-        public ItemNotFoundException(string message) : base(message) { }
+        public ObjectNotFoundException(string message) : base(message) { }
     }
 }

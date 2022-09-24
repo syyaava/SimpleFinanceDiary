@@ -1,4 +1,5 @@
 ﻿using Core.Exceptions;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,7 +71,7 @@ namespace Core
                 ILogger.Log(loggers, $"Operation with id {id} was received.");
                 return new OperationResult<MonetaryOperationDTO>(operation.AsDto(), Status.Ok);
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operation with id {id} not found. Exception message: {ex.Message}.");
                 return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error, 
@@ -150,7 +151,7 @@ namespace Core
                 ILogger.Log(loggers, $"Operation {operation.Id} was removed successfully.");
                 return new OperationResult<MonetaryOperationDTO>(operation.AsDto(), Status.Ok);
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operation {operationDTO.Id} not found for remove. Exception message: {ex.Message}");
                 return new OperationResult<MonetaryOperationDTO>(operationDTO, Status.Error, $"Operation {operationDTO.Id} not found for remove.");
@@ -172,7 +173,7 @@ namespace Core
                 ILogger.Log(loggers, $"All operations for user {userId} was removed.");
                 return new OperationResult<IEnumerable<MonetaryOperationDTO>>(userOperations, Status.Ok);
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operations for user {userId} not found. Exception message: {ex.Message}");
                 return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error, 
@@ -195,7 +196,7 @@ namespace Core
                 ILogger.Log(loggers, $"All operations ({type}) for user {userId} was removed.");
                 return new OperationResult<IEnumerable<MonetaryOperationDTO>>(userOperations, Status.Ok);
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operations ({type}) for user {userId} not found.");
                 return new OperationResult<IEnumerable<MonetaryOperationDTO>>(new List<MonetaryOperationDTO>(), Status.Error,
@@ -219,7 +220,7 @@ namespace Core
                 ILogger.Log(loggers, $"Operation {oldOperation.Id} was updated to {newOperation.Id}.");
                 return new OperationResult<MonetaryOperationDTO>(newOperation.AsDto(), Status.Ok);
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"Operation {oldOperationDTO.Id} not found for update. Exception message: {ex.Message}.");
                 return new OperationResult<MonetaryOperationDTO>(MonetaryOperation.GetDefaultOperation().AsDto(), Status.Error,

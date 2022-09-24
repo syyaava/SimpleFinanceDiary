@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.Exceptions;
+using Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -28,7 +29,7 @@ namespace Infrastructure
                 var existingUser = GetUser(user.Id);
                 throw new ItemAlreadyExistException("User with this id already exists.");
             }
-            catch(ItemNotFoundException)
+            catch(ObjectNotFoundException)
             {
                 users.Add(user);
                 SaveChanges();
@@ -38,7 +39,7 @@ namespace Infrastructure
         public User GetUser(string userId)
         {
             var user = users.FirstOrDefault(x => x.Id == userId);
-            return user is not null ? user : throw new ItemNotFoundException("User not found.");
+            return user is not null ? user : throw new ObjectNotFoundException("User not found.");
         }
 
         public IEnumerable<User> GetUsers()

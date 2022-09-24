@@ -1,4 +1,6 @@
-﻿namespace FinanceDiary.Tests
+﻿using Core.Interfaces;
+
+namespace FinanceDiary.Tests
 {
     internal class MockUserSource : IUserSource
     {
@@ -12,7 +14,7 @@
                 var existingUser = GetUser(user.Id);
                 throw new ItemAlreadyExistException("User with this id already exists.");
             }
-            catch (ItemNotFoundException)
+            catch (ObjectNotFoundException)
             {
                 users.Add(user);
             }
@@ -21,7 +23,7 @@
         public User GetUser(string userId)
         {
             var user = users.FirstOrDefault(u => u.Id == userId);
-            return user is not null ? user : throw new ItemNotFoundException("User not found.");
+            return user is not null ? user : throw new ObjectNotFoundException("User not found.");
         }
 
         public IEnumerable<User> GetUsers()

@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.Exceptions;
+using Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace Infrastructure
                 var existingOperation = Get(operation.Id, operation.UserId);
                 throw new ItemAlreadyExistException($"Operation with id {operation.Id} already contains.");
             }
-            catch(ItemNotFoundException)
+            catch(ObjectNotFoundException)
             {
                 operations.Add(operation);
                 SaveChanges();
@@ -46,7 +47,7 @@ namespace Infrastructure
         {
             var existingOperation = operations.FirstOrDefault(x => x.Id == id && x.UserId == userId);
             return existingOperation is not null ? existingOperation 
-                   : throw new ItemNotFoundException($"Operation with id: {id}, userId: {userId} not found.");
+                   : throw new ObjectNotFoundException($"Operation with id: {id}, userId: {userId} not found.");
         }
 
         public IEnumerable<MonetaryOperation> GetAll()
@@ -103,13 +104,13 @@ namespace Infrastructure
         private IEnumerable<MonetaryOperation> GetOperations(Func<MonetaryOperation, bool> func)
         {
             var userOperations = operations.Where(func).ToList();
-            return userOperations is not null ? userOperations : throw new ItemNotFoundException("Operations not found.");
+            return userOperations is not null ? userOperations : throw new ObjectNotFoundException("Operations not found.");
         }
 
         private void RemoveManyOperations(IEnumerable<MonetaryOperation> operationsToRemove)
         {
             if (operationsToRemove is null || operationsToRemove.Count() == 0)
-                throw new ItemNotFoundException("Operations not found.");
+                throw new ObjectNotFoundException("Operations not found.");
             foreach (var operation in operationsToRemove)
                 Remove(operation);
         }

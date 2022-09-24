@@ -1,4 +1,5 @@
-﻿using Infrastructure;
+﻿using Core.Interfaces;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,7 @@ namespace FinanceDiary.Tests
 
             userSource.AddUser(userToAdd);
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.GetUser("GetUser2"));
+            Assert.Throws<ObjectNotFoundException>(() => userSource.GetUser("GetUser2"));
         }
 
         [Fact]
@@ -95,7 +96,7 @@ namespace FinanceDiary.Tests
             userSource.AddUser(userToRemove);
             userSource.RemoveUser(userToRemove.Id);
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.GetUser(userToRemove.Id));
+            Assert.Throws<ObjectNotFoundException>(() => userSource.GetUser(userToRemove.Id));
         }
 
         [Fact]
@@ -104,7 +105,7 @@ namespace FinanceDiary.Tests
             IUserSource userSource = CreateUserSource();
             var userToRemove = new User("RemoveUser");
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.RemoveUser(userToRemove.Id));
+            Assert.Throws<ObjectNotFoundException>(() => userSource.RemoveUser(userToRemove.Id));
         }
 
         [Fact]
@@ -117,7 +118,7 @@ namespace FinanceDiary.Tests
             userSource.AddUser(userToUpdate);
             userSource.UpdateUser(userToUpdate, updatedUser);
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.GetUser(userToUpdate.Id));
+            Assert.Throws<ObjectNotFoundException>(() => userSource.GetUser(userToUpdate.Id));
             Assert.True(userSource.GetUsers().Count() == 1);
         }
 
@@ -128,7 +129,7 @@ namespace FinanceDiary.Tests
             var userToUpdate = new User("UserToUpdate");
             var updatedUser = new User("UpdatedUser");
 
-            Assert.Throws<ItemNotFoundException>(() => userSource.UpdateUser(userToUpdate, updatedUser));
+            Assert.Throws<ObjectNotFoundException>(() => userSource.UpdateUser(userToUpdate, updatedUser));
         }
 
         private IUserSource CreateUserSource()

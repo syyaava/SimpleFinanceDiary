@@ -1,4 +1,5 @@
-﻿using Infrastructure;
+﻿using Core.Interfaces;
+using Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,8 +71,8 @@ namespace FinanceDiary.Tests
 
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.Get(operations[2].Id, "NoUser"));
-            Assert.Throws<ItemNotFoundException>(() => financeSource.Get(Guid.NewGuid().ToString(), operations[4].UserId));
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.Get(operations[2].Id, "NoUser"));
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.Get(Guid.NewGuid().ToString(), operations[4].UserId));
         }
 
         [Fact]
@@ -177,7 +178,7 @@ namespace FinanceDiary.Tests
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
             financeSource.Remove(operations[2]);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.Get(operations[2].Id, operations[2].UserId));
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.Get(operations[2].Id, operations[2].UserId));
         }
 
         [Fact]
@@ -188,7 +189,7 @@ namespace FinanceDiary.Tests
 
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.Remove(operation));
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.Remove(operation));
         }
 
         [Fact]
@@ -212,7 +213,7 @@ namespace FinanceDiary.Tests
 
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.RemoveAll(userId));       
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.RemoveAll(userId));       
         }
 
         [Fact]
@@ -237,7 +238,7 @@ namespace FinanceDiary.Tests
 
             List<MonetaryOperation> operations = AddManyOperations(financeSource);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.RemoveAllByType(userId, OperationType.Income));       
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.RemoveAllByType(userId, OperationType.Income));       
         }
 
         [Fact]
@@ -264,7 +265,7 @@ namespace FinanceDiary.Tests
             var operationToUpdate = new MonetaryOperation(222M, OperationType.Income, "MyUser");
             var updatedOperation = new MonetaryOperation(888M, OperationType.Expense, operationToUpdate.UserId);
 
-            Assert.Throws<ItemNotFoundException>(() => financeSource.Update(operationToUpdate, updatedOperation));
+            Assert.Throws<ObjectNotFoundException>(() => financeSource.Update(operationToUpdate, updatedOperation));
         }
 
         private static List<MonetaryOperation> AddManyOperations(IFinanceSource financeSource)

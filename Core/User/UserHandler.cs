@@ -1,4 +1,5 @@
 ﻿using Core.Exceptions;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace Core
                 ILogger.Log(loggers, $"User with id {userId} was received.");
                 return new OperationResult<UserDTO>(user.AsDto(), Status.Ok);
             }
-            catch (ItemNotFoundException ex)
+            catch (ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"User with id {userId} not found. Exception message: {ex.Message}.");
                 return new OperationResult<UserDTO>(User.GetUnknowUser().AsDto(), Status.Error, $"User with id {userId} not found.");
@@ -81,7 +82,7 @@ namespace Core
                 ILogger.Log(loggers, $"User with id {userId} was removed.");
                 return new OperationResult<UserDTO>(user, Status.Ok, $"User with id {userId} war removed.");
             }
-            catch (ItemNotFoundException ex)
+            catch (ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"User with id {userId} not fount to remove. Exception message: {ex.Message}.");
                 return new OperationResult<UserDTO>(User.GetUnknowUser().AsDto(), Status.Error, $"User with id {userId} not found to remove.");
@@ -98,7 +99,7 @@ namespace Core
                 ILogger.Log(loggers, $"User with id {oldUser.Id} was updated.");
                 return new OperationResult<UserDTO>(newUser.AsDto(), Status.Ok, $"Old user {oldUser.Id} was updated to {newUser.Id}.");
             }
-            catch(ItemNotFoundException ex)
+            catch(ObjectNotFoundException ex)
             {
                 ILogger.Log(loggers, $"User with id {oldUserDTO.Id} not found. Exception message: {ex.Message}.");
                 return new OperationResult<UserDTO>(oldUserDTO, Status.Error, $"User with id {oldUserDTO.Id} not found.");
